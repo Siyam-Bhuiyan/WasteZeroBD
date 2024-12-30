@@ -1,3 +1,4 @@
+//app/collect/page.tsx
 'use client'
 import { useState, useEffect } from 'react'
 import { Trash2, MapPin, CheckCircle, Clock, ArrowRight, Camera, Upload, Loader, Calendar, Weight, Search } from 'lucide-react'
@@ -8,7 +9,7 @@ import { getWasteCollectionTasks, updateTaskStatus, saveReward, saveCollectedWas
 import { GoogleGenerativeAI } from "@google/generative-ai"
 
 // Make sure to set your Gemini API key in your environment variables
-const geminiApiKey = 'AIzaSyB2iBDJHZNytthVh4arWyLY9vhvnawAGhY';
+const geminiApiKey = 'AIzaSyBHsDwAUeSLBwze08tuF3Yukz90jeU5nE0';
 
 type CollectionTask = {
   id: number

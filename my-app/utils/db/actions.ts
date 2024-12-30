@@ -1,5 +1,5 @@
 import { db } from './dbConfig';
-import { Users, Reports, Rewards, CollectedWastes, Notifications, Transactions } from './schema';
+import { Users, Reports, Rewards, CollectedWastes, Notifications, Transactions, WasteListings } from './schema';
 import { eq, sql, and, desc, ne } from 'drizzle-orm';
 
 export async function createUser(email: string, name: string) {
@@ -8,6 +8,37 @@ export async function createUser(email: string, name: string) {
     return user;
   } catch (error) {
     console.error("Error creating user:", error);
+    return null;
+  }
+}
+
+// utils/db/actions.ts
+
+export async function createWasteListing(data: {
+  userId: number;
+  title: string;
+  description: string;
+  location: string;
+  latitude: number;
+  longitude: number;
+  wasteType: string;
+  quantity: string;
+  price: number;
+  image?: string | null;
+  verificationResult?: string;
+}) {
+  try {
+    const [listing] = await db
+      .insert(WasteListings)
+      .values({
+        ...data,
+        status: "available",
+      })
+      .returning()
+      .execute();
+    return listing;
+  } catch (error) {
+    console.error("Error creating waste listing:", error);
     return null;
   }
 }

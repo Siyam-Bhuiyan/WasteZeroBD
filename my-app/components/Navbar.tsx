@@ -9,6 +9,7 @@ import {
   Settings,
   Home,
   Recycle,
+  Coins,
 } from "lucide-react";
 
 const navbarItems = [
@@ -16,7 +17,8 @@ const navbarItems = [
   { href: "/report", icon: MapPin, label: "Report Waste" },
   { href: "/collect", icon: Trash, label: "Collect Waste" },
   { href: "/rewards", icon: Heart, label: "Rewards" },
-  { href: "/leaderboard", icon: Medal, label: "Leaderboard" },
+  { href: "/leaderboard", icon: Coins, label: "Leaderboard" },
+  { href: "/market", icon: Medal, label: "Waste Marketplace" },
   {
     href: "/recycling-recommendations",
     icon: Recycle,

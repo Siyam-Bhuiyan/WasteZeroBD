@@ -1,5 +1,22 @@
 import { integer, varchar, pgTable, serial, text, timestamp, jsonb, boolean } from "drizzle-orm/pg-core";
 
+// utils/db/schema.ts
+
+export const WasteListings = pgTable("waste_listings", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => Users.id).notNull(),
+  title: varchar("title", { length: 255 }).notNull(),
+  description: text("description"),
+  location: text("location").notNull(),
+  wasteType: varchar("waste_type", { length: 255 }).notNull(),
+  quantity: varchar("quantity", { length: 255 }).notNull(),
+  price: integer("price").notNull(),
+  imageUrl: text("image_url"),
+  verificationResult: jsonb("verification_result"),
+  status: varchar("status", { length: 20 }).notNull().default("available"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Users table
 export const Users = pgTable("users", {
   id: serial("id").primaryKey(),

@@ -16,15 +16,12 @@ const poppins = Poppins({
 function AnimatedDustbin() {
   return (
     <div className="relative w-40 h-40 mx-auto mb-8">
-     
       {/* GIF */}
       <img 
         src="https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExMjRjNTlyMHlqeWJqMzVweHI2bjBza3Nybmpoa2xuc3BxYTVkanp4OCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/Dh8ULOqmVxHGoGSrku/giphy.gif" 
         alt="Animated Dustbin GIF" 
         className="relative w-full h-full object-contain rounded-full shadow-lg"
-      />
-
-      
+      />     
     </div>
   );
 }
