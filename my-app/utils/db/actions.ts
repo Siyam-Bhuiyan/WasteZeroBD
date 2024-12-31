@@ -1,6 +1,7 @@
 import { db } from './dbConfig';
-import { Users, Reports, Rewards, CollectedWastes, Notifications, Transactions, WasteListings } from './schema';
+import { Users, Reports, Rewards, CollectedWastes, Notifications, Transactions, WasteListings, Certificates } from './schema';
 import { eq, sql, and, desc, ne } from 'drizzle-orm';
+import jsPDF from 'jspdf';
 
 export async function createUser(email: string, name: string) {
   try {
@@ -45,6 +46,7 @@ export async function createBuyRequest(data: {
     return null;
   }
 }
+
 
 export async function getUserByEmail(email: string) {
   try {
@@ -544,4 +546,116 @@ export async function getRecyclingRecommendations(reportId: number) {
     throw error;
   }
 }
+
+export interface Review {
+  id: number;
+  userId: number;
+  answers: string; // JSON string containing user answers
+  status: "pending" | "approved" | "rejected";
+  score: number | null;
+  adminFeedback: string | null;
+}
+
+export async function generateCertificate(userEmail: string, userId: number): Promise<boolean> {
+  try {
+    // Simulate certificate generation logic
+    console.log(`Generating certificate for user ${userId} (${userEmail})`);
+
+    // Check if user is eligible (e.g., has an approved review)
+    const review = await db
+      .select()
+      .from(CertificateReviews)
+      .where(and(eq(CertificateReviews.userId, userId), eq(CertificateReviews.status, "approved")))
+      .execute();
+
+    if (review.length === 0) {
+      console.error("No approved certificate review found for this user.");
+      return false;
+    }
+
+    // Simulate certificate generation (e.g., PDF creation or database update)
+    console.log("Certificate generated successfully!");
+    return true;
+  } catch (error) {
+    console.error("Error generating certificate:", error);
+    return false;
+  }
+}
+
+
+
+export async function submitCertificateReview(userId: number, answers: any) {
+  try {
+    const [review] = await db
+      .insert(CertificateReviews)
+      .values({
+        userId,
+        answers: JSON.stringify(answers),
+        status: "pending",
+      })
+      .returning()
+      .execute();
+    return review;
+  } catch (error) {
+    console.error("Error submitting certificate review:", error);
+    throw error;
+  }
+}
+
+export async function getPendingCertificateReviews() {
+  return db
+    .select()
+    .from(CertificateReviews)
+    .where(eq(CertificateReviews.status, "pending"))
+    .execute();
+}
+
+export async function updateCertificateReviewStatus(
+  id: number,
+  status: "approved" | "rejected",
+  adminFeedback?: string,
+  score?: number
+): Promise<Review> {
+  const [updatedReview] = await db
+    .update(CertificateReviews)
+    .set({
+      status,
+      adminFeedback,
+      score,
+    })
+    .where(eq(CertificateReviews.id, id))
+    .returning()
+    .execute();
+
+  // Validate the updatedReview matches the Review interface
+  if (
+    !updatedReview ||
+    !["approved", "rejected", "pending"].includes(
+      updatedReview.status ?? "invalid"
+    )
+  ) {
+    throw new Error("Invalid status returned from database.");
+  }
+
+  // Ensure status conforms to the Review interface
+  return {
+    ...updatedReview,
+    status: updatedReview.status as "approved" | "rejected" | "pending",
+  };
+}
+
+export async function getApprovedCertificateReview(userId: number) {
+  try {
+    const [review] = await db
+      .select()
+      .from(CertificateReviews)
+      .where(and(eq(CertificateReviews.userId, userId), eq(CertificateReviews.status, "approved")))
+      .execute();
+    return review;
+  } catch (error) {
+    console.error("Error fetching approved review:", error);
+    throw error;
+  }
+}
+
 

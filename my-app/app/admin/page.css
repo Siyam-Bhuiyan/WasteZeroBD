@@ -1,0 +1,15 @@
+.admin-layout {
+    display: flex;
+    flex-direction: row;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  .admin-content {
+    margin-left: 50px; /* Same as the sidebar width */
+    padding: 20px;
+    width: calc(100% - 250px);
+    overflow-y: auto;
+    background-color: #f5f7fa;
+    
+  }

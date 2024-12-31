@@ -1,0 +1,157 @@
+.certificate-layout {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background-color: #f4f4f4;
+  }
+  
+  .certificate-header {
+    background-color: #4caf50;
+    color: white;
+    padding: 10px 20px;
+    text-align: center;
+  }
+  
+  .certificate-content {
+    flex: 1;
+    padding: 20px;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+  
+  .certificate-footer {
+    background-color: #333;
+    color: white;
+    text-align: center;
+    padding: 10px 0;
+  }
+  
+  .submit-button {
+    background-color: #4caf50; /* Green background */
+    color: white; /* White text */
+    border: none; /* Remove border */
+    border-radius: 5px; /* Rounded corners */
+    padding: 10px 20px; /* Padding */
+    font-size: 16px; /* Font size */
+    cursor: pointer; /* Pointer cursor on hover */
+    transition: background-color 0.3s ease; /* Smooth transition */
+  }
+  
+  .submit-button:hover {
+    background-color: #45a049; /* Darker green on hover */
+  }
+  
+  .submit-button:disabled {
+    background-color: #ccc; /* Gray background when disabled */
+    cursor: not-allowed; /* No pointer cursor */
+  }
+  
+
+  /* certificate.css */
+
+.certificate-container {
+    max-width: 800px; /* Limit the container width */
+    margin: 0 auto; /* Center the container */
+    padding: 20px; /* Add padding inside the container */
+    background-color: #f9f9f9; /* Light gray background */
+    border-radius: 10px; /* Rounded corners */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+    font-family: Arial, sans-serif; /* Modern font */
+    color: #333; /* Neutral text color */
+  }
+  
+  .certificate-container h2 {
+    font-size: 24px;
+    margin-bottom: 20px;
+    color: #4caf50; /* Green color for the title */
+    text-align: center; /* Center-align title */
+  }
+  
+  .certificate-container p {
+    font-size: 16px;
+    margin-bottom: 15px;
+    line-height: 1.6; /* Improve readability */
+  }
+  
+  .certificate-container .form-question {
+    margin-bottom: 20px;
+  }
+  
+  .certificate-container label {
+    font-weight: bold;
+    display: block;
+    margin-bottom: 8px;
+  }
+  
+  .certificate-container textarea {
+    width: 100%;
+    height: 80px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    resize: vertical;
+    font-size: 14px;
+  }
+  
+  .certificate-container textarea:focus {
+    border-color: #4caf50; /* Green focus border */
+    outline: none;
+    box-shadow: 0 0 5px rgba(76, 175, 80, 0.4); /* Green shadow */
+  }
+
+  
+  /* certificate.css */
+
+.generate-button {
+    display: inline-block;
+    background-color: #4caf50; /* Green background */
+    color: white; /* White text */
+    border: none; /* Remove default border */
+    border-radius: 8px; /* Rounded corners */
+    padding: 12px 24px; /* Padding */
+    font-size: 16px; /* Font size */
+    font-weight: bold; /* Bold text */
+    cursor: pointer; /* Pointer cursor on hover */
+    transition: all 0.3s ease; /* Smooth transition */
+    text-align: center; /* Center-align text */
+  }
+  
+  .generate-button:hover {
+    background-color: #45a049; /* Darker green on hover */
+  }
+  
+  .generate-button:disabled {
+    background-color: #ccc; /* Gray background when disabled */
+    color: #666; /* Dimmed text */
+    cursor: not-allowed; /* Disabled cursor */
+  }
+  .certificate-status-container {
+    max-width: 600px;
+    margin: 0 auto;
+    text-align: center;
+  }
+  
+  .error-message {
+    color: red;
+    margin-bottom: 1rem;
+  }
+  
+  .generate-button,
+  .pay-button {
+    padding: 0.75rem 1.5rem;
+    background-color: #4caf50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  .pay-button:disabled {
+    background-color: #ccc;
+  }
+  
+  .generate-button:hover,
+  .pay-button:hover:not(:disabled) {
+    background-color: #45a049;
+  }
+  

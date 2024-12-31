@@ -94,3 +94,20 @@ export const Transactions = pgTable("transactions", {
   description: text("description").notNull(),
   date: timestamp("date").defaultNow().notNull(),
 });
+
+export const Certificates = pgTable("certificates", {
+  id: serial("id").primaryKey(),
+  businessId: integer("business_id").references(() => Users.id).notNull(), // Assuming businesses are part of Users
+  issuedAt: timestamp("issued_at").defaultNow().notNull(),
+});
+
+export const CertificateReviews = pgTable("certificate_reviews", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => Users.id),
+  answers: text("answers").notNull(), // JSON format of user answers
+  score: integer("score"), // Calculated score
+  status: varchar("status", { length: 20 }).default("pending"), // 'pending', 'approved', 'rejected'
+  adminFeedback: text("admin_feedback"), // Optional feedback from admin
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});

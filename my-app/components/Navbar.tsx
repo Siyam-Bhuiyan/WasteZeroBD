@@ -19,6 +19,8 @@ const navbarItems = [
   { href: "/rewards", icon: Heart, label: "Rewards" },
   { href: "/leaderboard", icon: Coins, label: "Leaderboard" },
   { href: "/market", icon: Medal, label: "Waste Marketplace" },
+  { href: "/admin", icon: Medal, label: "Admin" },
+  { href: "/certificate", icon: Medal, label: "Certificate" },
   {
     href: "/recycling-recommendations",
     icon: Recycle,
