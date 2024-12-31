@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Upload, Loader, CheckCircle, Download, Camera, History, Trash2, Recycle, Info, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { GoogleGenerativeAI } from "@google/generative-ai";
@@ -48,30 +48,6 @@ export default function RecyclingRecommendationsPage() {
   const [recommendation, setRecommendation] = useState<RecyclingRecommendation | null>(null);
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [showHistory, setShowHistory] = useState(false);
-
-  useEffect(() => {
-    // Embed Chatbot
-    const scriptConfig = document.createElement('script');
-    scriptConfig.innerHTML = `
-      window.embeddedChatbotConfig = {
-        chatbotId: "gDh87aj3I6hMuqiZZwjRH",
-        domain: "www.chatbase.co"
-      };
-    `;
-    document.body.appendChild(scriptConfig);
-
-    const scriptEmbed = document.createElement('script');
-    scriptEmbed.src = 'https://www.chatbase.co/embed.min.js';
-    scriptEmbed.setAttribute('chatbotId', 'gDh87aj3I6hMuqiZZwjRH');
-    scriptEmbed.setAttribute('domain', 'www.chatbase.co');
-    scriptEmbed.defer = true;
-    document.body.appendChild(scriptEmbed);
-
-    return () => {
-      document.body.removeChild(scriptConfig);
-      document.body.removeChild(scriptEmbed);
-    };
-  }, []);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
