@@ -6,13 +6,12 @@ import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { OpenStreetMapProvider } from 'leaflet-geosearch'
 
-const customIcon = new L.Icon({
-  iconUrl: '/marker-icon.png',
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowUrl: '/marker-shadow.png',
-  shadowSize: [41, 41]
+// Use online CDN for marker icons
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
+  iconRetinaUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png'
 });
 
 const LocationMarker = ({ onLocationFound }) => {
@@ -72,7 +71,7 @@ export default function MapComponent({
       <LocationMarker onLocationFound={onLocationFound} />
       <MapEvents onMapClick={onMapClick} />
       {position && (
-        <Marker position={position} icon={customIcon} />
+        <Marker position={position} />
       )}
       {searchResult && (
         <SearchResult searchResult={searchResult} map={mapRef.current} />

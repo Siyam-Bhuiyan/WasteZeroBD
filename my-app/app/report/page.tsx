@@ -8,7 +8,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai"
 import { createUser, getUserByEmail, createReport, getRecentReports } from '@/utils/db/actions'
 import { useRouter } from 'next/navigation'
 import { toast } from 'react-hot-toast'
-import { OpenStreetMapProvider } from 'leaflet-geosearch'
+import { OpenStreetMapProvider, SearchResult, RawResult } from 'leaflet-geosearch'
 
 // Dynamically import the Map component with no SSR
 const MapComponent = dynamic(() => import('@/components/Map'), {
@@ -37,7 +37,7 @@ export default function ReportPage() {
   const router = useRouter();
   const [reports, setReports] = useState<Report[]>([]);
   const [position, setPosition] = useState<[number, number] | null>(null);
-  const [searchResult, setSearchResult] = useState(null);
+  const [searchResult, setSearchResult] = useState<SearchResult<RawResult> | null>(null);
   const mapRef = useRef(null);
   
   const [newReport, setNewReport] = useState({
@@ -49,7 +49,13 @@ export default function ReportPage() {
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [verificationStatus, setVerificationStatus] = useState<'idle' | 'verifying' | 'success' | 'failure'>('idle');
-  const [verificationResult, setVerificationResult] = useState(null);
+  interface VerificationResult {
+    wasteType: string;
+    quantity: string;
+    confidence: number;
+  }
+
+  const [verificationResult, setVerificationResult] = useState<VerificationResult | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleLocationSearch = async () => {
@@ -194,25 +200,22 @@ export default function ReportPage() {
     
     setIsSubmitting(true);
     try {
-      const reportData = {
-        userId: user.id,
-        location: newReport.location,
-        latitude: position[0],
-        longitude: position[1],
-        wasteType: newReport.type,
-        amount: newReport.amount,
-        image: preview,
-        verificationResult: verificationResult ? JSON.stringify(verificationResult) : undefined
-      };
+      const report = await createReport(
+        user.id,
+        newReport.location,
+        newReport.type,
+        newReport.amount,
+        preview ?? undefined,
+        'report',
+        verificationResult ? JSON.stringify(verificationResult) : undefined
+      );
 
-      const report = await createReport(reportData);
-      
       const formattedReport = {
-        id: report.id,
-        location: report.location,
-        wasteType: report.wasteType,
-        amount: report.amount,
-        createdAt: new Date(report.createdAt).toISOString().split('T')[0]
+        id: report?.id ?? 0,
+        location: report?.location ?? '',
+        wasteType: report?.wasteType ?? '',
+        amount: report?.amount ?? '',
+        createdAt: report ? new Date(report.createdAt).toISOString().split('T')[0] : ''
       };
       
       setReports([formattedReport, ...reports]);
