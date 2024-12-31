@@ -14,31 +14,34 @@ export async function createUser(email: string, name: string) {
 
 // utils/db/actions.ts
 
-export async function createWasteListing(data: {
+export async function createBuyRequest(data: {
   userId: number;
-  title: string;
-  description: string;
   location: string;
-  latitude: number;
-  longitude: number;
   wasteType: string;
-  quantity: string;
-  price: number;
+  amount: string;
+  money: string;
   image?: string | null;
   verificationResult?: string;
 }) {
   try {
-    const [listing] = await db
-      .insert(WasteListings)
+    const [buyRequest] = await db
+      .insert(Reports)  // Changed to insert into the Reports table
       .values({
-        ...data,
-        status: "available",
+        userId: data.userId,
+        location: data.location,
+        wasteType: data.wasteType,
+        amount: data.amount,
+        imageUrl: data.image,
+        verificationResult: data.verificationResult,
+        money: data.money, 
+        // money: data.money,  
+        status: "pending",
       })
       .returning()
       .execute();
-    return listing;
+    return buyRequest;
   } catch (error) {
-    console.error("Error creating waste listing:", error);
+    console.error("Error creating buy request:", error);
     return null;
   }
 }

@@ -21,7 +21,7 @@ const MapComponent = dynamic(() => import('@/components/Map'), {
 })
 
 const provider = new OpenStreetMapProvider();
-const geminiApiKey = 'AIzaSyCzHLO9DjXs1deBPkvfJbhTbWxqFmTN7SE';
+const geminiApiKey = 'AIzaSyBQ-KCx7JC2ksgGCEIKosnfDNqzl6qgf2w';
 
 interface Report {
   id: number;
