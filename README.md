@@ -1,7 +1,3 @@
-### **README for Waste Zero Bangladesh**
-
----
-
 # **Waste Zero Bangladesh**
 
 > **An AI-powered waste management system to foster a sustainable future for Bangladesh.**
@@ -174,17 +170,11 @@ We welcome contributions to **Waste Zero Bangladesh**! To contribute:
 
 ---
 
-## **License**
-
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
-
----
-
 ## **Contact**
 
 For queries or suggestions, please reach out to the project maintainers:
 
-- **Email**: [your_email@example.com](mailto:your_email@example.com)
-- **GitHub**: [yourusername](https://github.com/yourusername)
+- **Email**: [bhuiyansiyam294@gmail.com](mailto:bhuiyansiyam294@gmail.com)
+- **GitHub**: [Siyam-Bhuiyan](https://github.com/Siyam-Bhuiyan)
 
 ---
