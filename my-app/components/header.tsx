@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import Image from "next/image";
+import logo from "@/components/logo.png";
 import {
   Menu,
   ChevronDown,
@@ -13,8 +15,7 @@ import {
   Leaf,
   Search,
   User,
-  Bell,
-  Trash2
+  Bell
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -150,11 +151,11 @@ export default function Header({ onMenuClick, totalEarnings }: HeaderProps) {
             <Menu className="h-6 w-6" />
           </Button>
           <Link href="/" className="flex items-center">
-            <Trash2 className="h-6 w-6 md:h-8 md:w-8 text-red-500 mr-1 md:mr-2" /> 
-            <div className="flex flex-col">
-            <span className="font-bold text-lg text-[#006747]">WasteZeroBangladesh</span>
-            </div>
-          </Link>
+  <Image src={logo} alt="Logo" className="h-8 w-8 mr-2" />
+  <div className="flex flex-col">
+    <span className="font-bold text-lg text-[#006747]">WasteZeroBangladesh</span>
+  </div>
+</Link>
         </div>
         <div className="flex items-center">
           <DropdownMenu>
@@ -188,24 +189,49 @@ export default function Header({ onMenuClick, totalEarnings }: HeaderProps) {
             <span className="font-semibold text-sm md:text-base text-gray-800">{balance.toFixed(2)}</span>
           </div>
           {!isLoggedIn ? (
-            <Button onClick={login} className="bg-green-600 hover:bg-green-700 text-white text-sm md:text-base">
+            <Button
+              onClick={login}
+              className="bg-green-600 hover:bg-green-700 text-white font-medium px-6 rounded-full shadow-sm transition-all hover:shadow"
+            >
               Login
-              <LogIn className="ml-1 md:ml-2 h-4 w-4 md:h-5 md:w-5" />
+              <LogIn className="ml-2 h-4 w-4" />
             </Button>
           ) : (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="flex items-center">
-                  <User className="h-5 w-5 mr-1" />
-                  <ChevronDown className="h-4 w-4" />
+                <Button
+                  variant="ghost"
+                  className="flex items-center gap-2 hover:bg-gray-100 transition-colors"
+                >
+                  <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center">
+                    <User className="h-4 w-4 text-green-600" />
+                  </div>
+                  <span className="text-gray-700">{userInfo?.name || "Anonymous"}</span>
+                  <ChevronDown className="h-4 w-4 text-gray-400" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem>{userInfo?.name || "Anonymous User"}</DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Link href="/settings">Profile</Link>
+              <DropdownMenuContent align="end" className="w-56 p-2">
+                <DropdownMenuItem className="p-2 hover:bg-gray-50">
+                  <Link href="/profile" className="flex items-center gap-2 w-full">
+                    <User className="h-4 w-4" />
+                    Profile
+                  </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={logout}>Sign Out</DropdownMenuItem>
+                
+<DropdownMenuItem className="p-2 hover:bg-gray-50">
+  <Link href="/admin_auth" className="flex items-center gap-2 w-full">
+    <User className="h-4 w-4" />
+    Admin
+  </Link>
+</DropdownMenuItem>
+
+                <DropdownMenuItem
+                  className="p-2 hover:bg-gray-50 text-red-600"
+                  onClick={logout}
+                >
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Sign Out
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           )}

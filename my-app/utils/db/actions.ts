@@ -1,7 +1,82 @@
+//utils/db/actions.ts
 import { db } from './dbConfig';
 import { Users,CertificateReviews,Reports, Rewards, CollectedWastes, Notifications, Transactions, Certificates } from './schema';
 import { eq, sql, and, desc, ne } from 'drizzle-orm';
 import jsPDF from 'jspdf';
+
+// actions.ts
+export async function getUserCertificateStats(userId: number) {
+  try {
+    const reports = await getReportsByUserId(userId);
+    const collectedWastes = await getCollectedWastesByCollector(userId);
+    const balance = await getUserBalance(userId);
+    const user = await db.select().from(Users).where(eq(Users.id, userId)).execute();
+
+    return {
+      points: balance,
+      reportedWastes: reports.length,
+      collectedWastes: collectedWastes.length,
+      name: user[0]?.name || 'User',
+      date: new Date().toLocaleDateString()
+    };
+  } catch (error) {
+    console.error("Error fetching certificate stats:", error);
+    throw error;
+  }
+}
+
+export async function createCertificate(userId: number, type: string, stats: {
+  points: number;
+  reportedWastes: number;
+  collectedWastes: number;
+}) {
+  try {
+    const [certificate] = await db
+      .insert(Certificates)
+      .values({
+        userId,
+        type,
+        ...stats
+      })
+      .returning()
+      .execute();
+    return certificate;
+  } catch (error) {
+    console.error("Error creating certificate:", error);
+    throw error;
+  }
+}
+
+
+// export async function updateUser(userId: string, userData: any) {
+
+//   try {
+
+//     const response = await fetch(`/api/users/${userId}`, {
+
+//       method: 'PUT',
+
+//       headers: {
+
+//         'Content-Type': 'application/json',
+
+//       },
+
+//       body: JSON.stringify(userData),
+
+//     });
+
+//     return await response.json();
+
+//   } catch (error) {
+
+//     console.error('Error updating user:', error);
+
+//     throw error;
+
+//   }
+
+// }
 
 export async function createUser(email: string, name: string) {
   try {

@@ -1,6 +1,16 @@
 // utils/db/schema.ts
 import { integer, varchar, pgTable, serial, text, timestamp, jsonb, boolean, decimal } from "drizzle-orm/pg-core";
 
+export const Certificates = pgTable('certificates', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').references(() => Users.id),
+  type: text('type'), // 'iron', 'bronze', 'silver', 'gold'
+  points: integer('points'),
+  reportedWastes: integer('reported_wastes'),
+  collectedWastes: integer('collected_wastes'),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
 export const WasteListings = pgTable("waste_listings", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").references(() => Users.id).notNull(),
@@ -95,11 +105,11 @@ export const Transactions = pgTable("transactions", {
   date: timestamp("date").defaultNow().notNull(),
 });
 
-export const Certificates = pgTable("certificates", {
-  id: serial("id").primaryKey(),
-  businessId: integer("business_id").references(() => Users.id).notNull(), // Assuming businesses are part of Users
-  issuedAt: timestamp("issued_at").defaultNow().notNull(),
-});
+// export const Certificates = pgTable("certificates", {
+//   id: serial("id").primaryKey(),
+//   businessId: integer("business_id").references(() => Users.id).notNull(), // Assuming businesses are part of Users
+//   issuedAt: timestamp("issued_at").defaultNow().notNull(),
+// });
 
 export const CertificateReviews = pgTable("certificate_reviews", {
   id: serial("id").primaryKey(),
