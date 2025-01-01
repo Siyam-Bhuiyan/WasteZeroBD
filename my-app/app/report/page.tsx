@@ -125,7 +125,6 @@ export default function ReportPage() {
       reader.readAsDataURL(file);
     });
   };
-
   const handleVerify = async () => {
     if (!file) return;
   

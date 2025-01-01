@@ -1,5 +1,5 @@
 import { db } from './dbConfig';
-import { Users, Reports, Rewards, CollectedWastes, Notifications, Transactions, WasteListings, Certificates } from './schema';
+import { Users,CertificateReviews,Reports, Rewards, CollectedWastes, Notifications, Transactions, Certificates } from './schema';
 import { eq, sql, and, desc, ne } from 'drizzle-orm';
 import jsPDF from 'jspdf';
 
@@ -47,6 +47,15 @@ export async function createBuyRequest(data: {
   }
 }
 
+
+export interface Review {
+  id: number;
+  userId: number;
+  answers: string; // JSON string containing user answers
+  status: "pending" | "approved" | "rejected";
+  score: number | null;
+  adminFeedback: string | null;
+}
 
 export async function getUserByEmail(email: string) {
   try {
@@ -555,6 +564,48 @@ export interface Review {
   score: number | null;
   adminFeedback: string | null;
 }
+export async function getBusinesses() {
+  try {
+    const businesses = await db.select().from(Users).execute(); // Adjust based on your schema
+    return businesses;
+  } catch (error) {
+    console.error("Error fetching businesses:", error);
+    throw error;
+  }
+}
+import Stripe from "stripe";
+
+// const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
+//   apiVersion: "2022-11-15" as Stripe.LatestApiVersion,
+// });
+
+
+// export async function createStripeSession(businessId: number) {
+//   try {
+//     const session = await stripe.checkout.sessions.create({
+//       payment_method_types: ["card"],
+//       line_items: [
+//         {
+//           price_data: {
+//             currency: "usd",
+//             product_data: { name: "Certification Fee" },
+//             unit_amount: 5000,
+//           },
+//           quantity: 1,
+//         },
+//       ],
+//       mode: "payment",
+//       success_url: `${process.env.NEXT_PUBLIC_DOMAIN}/success?businessId=${businessId}`,
+//       cancel_url: `${process.env.NEXT_PUBLIC_DOMAIN}/cancel`,
+//     });
+
+//     return session.id;
+//   } catch (error) {
+//     console.error("Error creating Stripe session:", error);
+//     throw error;
+//   }
+// }
+
 
 export async function generateCertificate(userEmail: string, userId: number): Promise<boolean> {
   try {
