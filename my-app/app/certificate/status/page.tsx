@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { loadStripe } from "@stripe/stripe-js";
 import jsPDF from "jspdf";
 const CertificateStatus: React.FC = () => {
@@ -10,6 +10,7 @@ const CertificateStatus: React.FC = () => {
   const [approved, setApproved] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const searchParams = useSearchParams();
+  const router = useRouter();
   const userEmail= localStorage.getItem('userEmail')
   useEffect(() => {
     const checkApprovalStatus = async () => {
@@ -87,30 +88,14 @@ const CertificateStatus: React.FC = () => {
   };
 
   const handleGenerateCertificate = () => {
-    const userName = "John Doe"; // Replace with dynamic user data if available
-    const courseName = "Advanced React Development"; // Replace with dynamic course data if available
-    const date = new Date().toLocaleDateString();
-
-    const doc = new jsPDF();
-
-    doc.setFontSize(22);
-    doc.text("Certificate of Completion", 105, 40, { align: "center" });
-
-    doc.setFontSize(16);
-    doc.text(`This certifies that ${userEmail}'s business`, 105, 70, { align: "center" });
-    doc.text(`has successfully proved their eco-friendly impact`, 105, 85, { align: "center" });
-    doc.text(`on ${date}.`, 105, 100, { align: "center" });
-
-    doc.setFontSize(12);
-    doc.text("Congratulations on your achievement!", 105, 140, { align: "center" });
-
-    // Signature
-    doc.setFontSize(10);
-    doc.text("Authorized Signature", 105, 170, { align: "center" });
-    doc.line(75, 175, 135, 175); // Signature line
-
-    doc.save("Certificate.pdf");
+    // Navigate to the /badge route
+    router.push("/Badge");
   };
+
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
+
 
   if (error) {
     return <div>Error: {error}</div>;

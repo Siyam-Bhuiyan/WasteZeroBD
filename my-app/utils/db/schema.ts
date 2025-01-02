@@ -2,8 +2,9 @@
 import { integer, varchar, pgTable, serial, text, timestamp, jsonb, boolean, decimal } from "drizzle-orm/pg-core";
 
 export const Certificates = pgTable('certificates', {
-  id: serial('id').primaryKey(),
-  userId: integer('user_id').references(() => Users.id),
+  id: serial("id").primaryKey(),
+  businessId: integer("business_id").references(() => Users.id).notNull(), // Assuming businesses are part of Users
+  issuedAt: timestamp("issued_at").defaultNow().notNull(),
   type: text('type'), // 'iron', 'bronze', 'silver', 'gold'
   points: integer('points'),
   reportedWastes: integer('reported_wastes'),
