@@ -5,6 +5,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/header";
 import Navbar from "@/components/Navbar";
+import Script from "next/script";
 import { Toaster } from "react-hot-toast";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -16,6 +17,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
   return (
     <html lang="en">
+      <head>
+        <Script
+          src="https://upload-widget.cloudinary.com/global/all.js"
+          strategy="beforeInteractive" // Ensures the script is loaded before rendering
+        />
+      </head>
       <body className={inter.className}>
         {shouldShowHeaderAndNavbar ? (
           <div className="min-h-screen bg-gray-50 flex flex-col z-50">

@@ -1,7 +1,8 @@
 //utils/db/actions.ts
 import { db } from './dbConfig';
 import { Users,CertificateReviews,Reports, Rewards, CollectedWastes, Notifications, Transactions, Certificates } from './schema';
-import { eq, sql, and, desc, ne } from 'drizzle-orm';
+import { eq, sql, and, desc, like } from 'drizzle-orm';
+import { ResidentialServices, Cleaners } from './schema';
 import jsPDF from 'jspdf';
 
 // actions.ts
@@ -784,4 +785,52 @@ export async function getApprovedCertificateReview(userId: number) {
   }
 }
 
+// Create a new residential service request
+export async function createServiceRequest(userId: number, cleanerId: number, location: string, wasteType: string) {
+  const [service] = await db
+    .insert(ResidentialServices)
+    .values({
+      userId,
+      cleanerId,
+      location,
+      wasteType,
+      status: 'pending',
+    })
+    .returning();
+  return service;
+}
 
+// Get available cleaners
+export async function getAvailableCleaners(location: string) {
+  const cleaners = await db
+    .select()
+    .from(Cleaners)
+    .where(
+      and(
+        eq(Cleaners.availability, 'available'), // Correct use of `eq` helper
+        like(Cleaners.location, `%${location}%`) // Correct use of `like` helper
+      )
+    )
+    .execute();
+  return cleaners;
+}
+
+// Update service status
+export async function updateServiceStatus(serviceId: number, status: string) {
+  const [updatedService] = await db
+    .update(ResidentialServices)
+    .set({ status })
+    .where(eq(ResidentialServices.id, serviceId)) // Correct use of `eq` helper
+    .returning();
+  return updatedService;
+}
+
+// Fetch user’s service requests
+export async function getUserRequests(userId: number) {
+  const services = await db
+    .select()
+    .from(ResidentialServices)
+    .where(eq(ResidentialServices.userId, userId)) // Correct use of `eq` helper
+    .execute();
+  return services;
+}

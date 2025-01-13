@@ -1,5 +1,6 @@
 // utils/db/schema.ts
-import { integer, varchar, pgTable, serial, text, timestamp, jsonb, boolean, decimal } from "drizzle-orm/pg-core";
+import { integer, varchar, pgTable, serial, text, timestamp, jsonb, boolean, decimal, } from "drizzle-orm/pg-core";
+import {sql} from 'drizzle-orm'
 
 export const Certificates = pgTable('certificates', {
   id: serial("id").primaryKey(),
@@ -121,4 +122,34 @@ export const CertificateReviews = pgTable("certificate_reviews", {
   adminFeedback: text("admin_feedback"), // Optional feedback from admin
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+
+export const ResidentialServices = pgTable('residential_services', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').notNull(),
+  cleanerId: integer('cleaner_id'),
+  location: text('location').notNull(),
+  wasteType: varchar('waste_type', { length: 255 }).notNull(),
+  status: varchar('status', { length: 50 }).default('pending'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export const Cleaners = pgTable('cleaners', {
+  id: serial('id').primaryKey(),
+  name: varchar('name', { length: 255 }).notNull(),
+  phone: varchar('phone', { length: 20 }).notNull(),
+  location: text('location').notNull(),
+  availability: varchar('availability', { length: 50 }).default('available'),
+  rating: integer('rating').default(5),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const Images = pgTable('images', {
+  id: serial('id').primaryKey(),
+  fileName: text('file_name').notNull(),
+  fileUrl: text('file_url').notNull(),
+  fileType: varchar('file_type', { length: 50 }).notNull(),
+  uploadedAt: timestamp('uploaded_at', { withTimezone: true }).defaultNow().notNull(),
 });
