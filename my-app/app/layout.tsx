@@ -1,49 +1,41 @@
-"use client";
+// app/layout.tsx
 
-import { usePathname } from "next/navigation";
-import { Inter } from "next/font/google";
 import "./globals.css";
-import Header from "@/components/header";
-import Navbar from "@/components/Navbar";
-import { Toaster } from "react-hot-toast";
+import React from "react";
 
-const inter = Inter({ subsets: ["latin"] });
+export const metadata = {
+  title: "Waste Management Dashboard",
+  description: "Explore our initiatives to improve sustainability.",
+};
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
-  const hiddenRoutes = ["/admin/certificate-reviews", "/admin"];
-  const pathname = usePathname();
-  const shouldShowHeaderAndNavbar = !hiddenRoutes.includes(pathname);
-
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="en">
-      <body className={inter.className}>
-        {shouldShowHeaderAndNavbar ? (
-          <div className="min-h-screen bg-gray-50 flex flex-col z-50">
-            {/* Header */}
-            <Header
-              onMenuClick={function (): void {
-                throw new Error("Function not implemented.");
-              }}
-              totalEarnings={0}
-            />
-
-            {/* Navbar */}
-            <Navbar open={true} />
-
-            <div className="flex flex-1">
-              <main className="flex-1 p-4 lg:p-8 ml-16 transition-all duration-300">
-                {children}
-              </main>
+      <body className="min-h-screen flex flex-col">
+        <header className="text-white text-center">
+          <div className="bg-red-600 py-2 text-sm font-medium">
+            6 concepts of waste zero!
+          </div>
+          <div className="bg-red-600">
+            <div className="py-6 bg-[#006a4e]">
+              <h1 className="text-2xl font-bold tracking-wide text-white font-['Ubuntu']">
+                Welcome to Waste Zero Bangladesh
+              </h1>
             </div>
           </div>
-        ) : (
-          <div className="flex flex-1">
-            <main className="flex-1 p-4 lg:p-8 transition-all duration-300">
-              {children}
-            </main>
-          </div>
-        )}
-        <Toaster />
+        </header>
+        <main className="flex-grow bg-gray-100 p-6 font-['Ubuntu']">
+          {children}
+        </main>
+        <footer className="bg-gray-800 text-white text-center py-4 mt-4 font-['Ubuntu']">
+          <p className="text-sm">
+            &copy; {new Date().getFullYear()} Waste Management
+          </p>
+        </footer>
       </body>
     </html>
   );
