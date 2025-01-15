@@ -1,64 +1,82 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { MapPin, Trash, Heart, Medal, Settings, Home, Recycle } from "lucide-react"; // Added Recycle icon
+import { MapPin, Trash, Coins, Medal, Settings, Home, Recycle } from "lucide-react";
 
 const sidebarItems = [
-  { href: "/", icon: Home, label: "Home" },
-  { href: "/report", icon: MapPin, label: "Report Waste" },
-  { href: "/collect", icon: Trash, label: "Collect Waste" },
-  { href: "/rewards", icon: Heart, label: "Rewards" },
-  { href: "/leaderboard", icon: Medal, label: "Leaderboard" },
-  { href: "/recycling-recommendations", icon: Recycle, label: "Recycling Recommendations" }, // New item
+  { href: "/", icon: Home, label: "Homepage" },
+  { href: "/user/report", icon: MapPin, label: "Report Waste" },
+  { href: "/user/collect", icon: Trash, label: "Collect Waste" },
+  { href: "/user/rewards", icon: Coins, label: "Rewards" },
+  { href: "/user/leaderboard", icon: Medal, label: "Leaderboard" },
+  { href: "/user/market", icon: Medal, label: "Waste Marketplace" },
+  { href: "/user/recycling-recommendations", icon: Recycle, label: "Recycle Recommendations" },
+  { href: "/user/certificate/questions", icon: Medal, label: "Certificate" },
 ];
 
 interface SidebarProps {
-  open: boolean;
+  isSidebarOpen: boolean;
+  toggleSidebar: () => void;
 }
 
-export default function Sidebar({ open }: SidebarProps) {
+export default function Sidebar({ isSidebarOpen, toggleSidebar }: SidebarProps) {
   const pathname = usePathname();
 
   return (
-    <aside
-      className={`bg-white border-r pt-20 border-gray-200 text-gray-800 w-64 fixed inset-y-0 left-0 z-30 transform transition-transform duration-300 ease-in-out ${
-        open ? "translate-x-0" : "-translate-x-full"
-      } lg:translate-x-0`}
-    >
-      <nav className="h-full flex flex-col justify-between">
-        <div className="px-4 py-6 space-y-8">
-          {sidebarItems.map((item) => (
-            <Link key={item.href} href={item.href} passHref>
-              <Button
-                variant={pathname === item.href ? "secondary" : "ghost"}
-                className={`w-full justify-start py-3 ${
+    <>
+      {/* Sidebar */}
+      <aside
+        className={`fixed inset-y-0 left-0 z-30 w-80 bg-[#DFF6DD] shadow-lg transform transition-transform duration-300 ease-in-out ${
+          isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        <nav className="h-full flex flex-col">
+          {/* Sidebar Header */}
+          <div className="text-center py-6 bg-[#006A4E] text-white font-bold text-xl">
+            WasteZeroBangladesh
+          </div>
+
+          {/* Sidebar Items */}
+          <div className="flex flex-col mt-6 space-y-3 px-6">
+            {sidebarItems.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`block w-full px-4 py-3 text-left rounded-md text-base font-medium transition-colors ${
                   pathname === item.href
-                    ? "bg-[#006A4E] text-white" // Bottlegreen for active
-                    : "text-gray-600 hover:bg-gray-50 hover:text-gray-800" // Lighter hover effect
+                    ? "bg-[#006A4E] text-white"
+                    : "text-[#006A4E] hover:bg-[#006A4E] hover:text-white"
                 }`}
               >
-                <item.icon className="mr-3 h-5 w-5" />
-                <span className="text-base">{item.label}</span>
-              </Button>
-            </Link>
-          ))}
-        </div>
-        <div className="p-4 border-t border-gray-200">
-          <Link href="/settings" passHref>
-            <Button
-              variant={pathname === "/settings" ? "secondary" : "outline"}
-              className={`w-full py-3 ${
+                {item.icon && <item.icon className="inline-block mr-3 h-5 w-5" />}
+                {item.label}
+              </Link>
+            ))}
+          </div>
+
+          {/* Sidebar Footer */}
+          <div className="px-6 mt-auto mb-6">
+            <Link
+              href="/settings"
+              className={`block w-full px-4 py-3 text-left rounded-md text-base font-medium transition-colors ${
                 pathname === "/settings"
                   ? "bg-[#006A4E] text-white"
-                  : "text-gray-600 border-gray-300 hover:bg-gray-50 hover:text-gray-800"
+                  : "text-[#006A4E] hover:bg-[#006A4E] hover:text-white"
               }`}
             >
-              <Settings className="mr-3 h-5 w-5" />
-              <span className="text-base">Settings</span>
-            </Button>
-          </Link>
-        </div>
-      </nav>
-    </aside>
+              <Settings className="inline-block mr-3 h-5 w-5" />
+              Settings
+            </Link>
+          </div>
+        </nav>
+      </aside>
+
+      {/* Overlay (for mobile screens) */}
+      {isSidebarOpen && (
+        <div
+          className="fixed inset-0 z-20 bg-black opacity-50"
+          onClick={toggleSidebar}
+        ></div>
+      )}
+    </>
   );
 }
