@@ -1,5 +1,5 @@
-"use client"
-import { Box, IconButton, useTheme } from "@mui/material";
+"use client";
+import { Box, IconButton, useTheme, ThemeProvider, CssBaseline } from "@mui/material";
 import InputBase from "@mui/material/InputBase";
 import LightModeOutlinedIcon from "@mui/icons-material/LightModeOutlined";
 import DarkModeOutlinedIcon from "@mui/icons-material/DarkModeOutlined";
@@ -7,15 +7,12 @@ import NotificationsOutlinedIcon from "@mui/icons-material/NotificationsOutlined
 import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
 import PersonOutlinedIcon from "@mui/icons-material/PersonOutlined";
 import SearchIcon from "@mui/icons-material/Search";
+import { useContext } from "react";
+import { ColorModeContext } from "../theme";
 
 const Topbar = () => {
-  const theme = useTheme();
-  const isDarkMode = theme.palette.mode === "dark"; // Directly check theme mode
-
-  const toggleColorMode = () => {
-    console.log("Color mode toggle button clicked.");
-    // Add logic for toggling the theme manually, if needed
-  };
+  const theme = useTheme(); // Access the current theme
+  const colorMode = useContext(ColorModeContext); // Access color mode context
 
   return (
     <Box display="flex" justifyContent="space-between" p={2}>
@@ -33,8 +30,12 @@ const Topbar = () => {
 
       {/* ICONS */}
       <Box display="flex">
-        <IconButton onClick={toggleColorMode}>
-          {isDarkMode ? <DarkModeOutlinedIcon /> : <LightModeOutlinedIcon />}
+        <IconButton onClick={colorMode.toggleColorMode}>
+          {theme.palette.mode === "dark" ? (
+            <LightModeOutlinedIcon />
+          ) : (
+            <DarkModeOutlinedIcon />
+          )}
         </IconButton>
         <IconButton>
           <NotificationsOutlinedIcon />

@@ -81,7 +81,7 @@ const SidebarComponent = () => {
             <MenuItem
               icon={<HomeOutlinedIcon />}
               component="a"
-              href="/" // Ensures no nested <a> tag issue
+              href="/admin" // Ensures no nested <a> tag issue
             >
               Dashboard
             </MenuItem>

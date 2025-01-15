@@ -36,6 +36,8 @@ export default function AdminPage() {
         return <Calendar />;
       case "/admin/geography":
         return <Geography />;
+      case "/admin":
+        return <Dashboard />;
       default:
         return <Dashboard />;
     }
