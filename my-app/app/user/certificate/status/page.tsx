@@ -1,9 +1,18 @@
 "use client";
-
 import React, { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+import { toast } from "react-hot-toast";
 import { loadStripe } from "@stripe/stripe-js";
 import jsPDF from "jspdf";
+import axios, {AxiosResponse} from "axios";
+
+// Define the type for the Axios response
+interface BkashApiResponse {
+  status: boolean;
+  data: {
+    bkashURL: string;
+  };
+}
 const CertificateStatus: React.FC = () => {
   const [paymentStatus, setPaymentStatus] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -61,31 +70,34 @@ const CertificateStatus: React.FC = () => {
       alert("Your certificate has not been approved by the admin yet.");
       return;
     }
-
+  
     setLoading(true);
+  
     try {
-      const response = await fetch("/user/api/payment-intent", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to create payment session");
+      // Make a POST request to the SSLCommerz payment intent endpoint
+      const result: AxiosResponse<{ success: boolean; url: string }> = await axios.post(
+        "/user/api/sslcommerz-intent/sslcommerz/create-payment",
+        {
+          amount: "500", // Example amount
+        }
+      );
+  
+      console.log("🚀 ~ handlePayment ~ result:", result);
+  
+      if (result.data.success && result.data.url) {
+        // Redirect to the SSLCommerz payment URL
+        window.location.href = result.data.url;
+      } else {
+        toast.error("Something went wrong during the payment initiation.");
       }
-
-      const { sessionId } = await response.json();
-
-      const stripe = await loadStripe("pk_test_51PMqS2GhvT5slJMQ88OIGK4hnLOJQ3MtXOgVFd5y75wzA63FMoy5cIre7yNblPkaURi5cm7fm0mSr3TJAwSezxlJ00JA67URdL");
-      if (stripe) {
-        await stripe.redirectToCheckout({ sessionId });
-      }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error during payment:", error);
-      alert("Payment failed. Please try again.");
+      toast.error(error.response?.data?.message || "Payment failed. Please try again.");
     } finally {
       setLoading(false);
     }
   };
+  
 
   const handleGenerateCertificate = () => {
     // Navigate to the /badge route
