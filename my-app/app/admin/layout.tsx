@@ -1,34 +1,37 @@
 "use client";
 
-import React from "react";
-import Sidebar from "@/app/admin/components/sidebar/page"; // Adjust path based on your structure
-import Topbar from "@/app/admin/components/topbar/page";
-import "@/app/admin/page.css"; // Add any global admin styles here
-import { Provider } from "react-redux";
-import { store, persistor } from "@/app/admin/redux/store";
-import { PersistGate } from "redux-persist/integration/react";
-import { BrowserRouter } from "react-router-dom";
+import { CssBaseline, ThemeProvider } from "@mui/material";
+import { useMode, ColorModeContext } from "./theme";
+import Sidebar from "./global/Sidebar";
+import Topbar from "./global/Topbar";
 
-export default function AdminLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  const [theme, colorMode] = useMode();
+
   return (
     <html lang="en">
+      <head>
+        <title>Admin Panel</title>
+      </head>
       <body>
-        <Provider store={store}>
-          <PersistGate loading={null} persistor={persistor}>
-            <BrowserRouter>
+    <ColorModeContext.Provider value={colorMode}>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <div style={{ display: "flex", height: "100vh" }}>
+          {/* Sidebar */}
+          <Sidebar />
+          {/* Main Content */}
+          <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
             <Topbar />
-            <div className="admin-layout">
-              <Sidebar />
-              <main className="admin-content">{children}</main>
+            {/* Page Content */}
+            <div style={{ flex: 1, overflow: "auto", padding: "20px" }}>
+              {children}
             </div>
-            </BrowserRouter>
-          </PersistGate>
-        </Provider>
-      </body>
+          </div>
+        </div>
+      </ThemeProvider>
+    </ColorModeContext.Provider>
+    </body>
     </html>
   );
 }

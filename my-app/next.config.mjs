@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+    reactStrictMode: false,
     typescript: {
       ignoreBuildErrors: true,
     },
@@ -12,6 +13,27 @@ const nextConfig = {
       GEMINI_API_KEY:'AIzaSyB2iBDJHZNytthVh4arWyLY9vhvnawAGhY',
       GOOOGLE_MAPS_API_KEY:'AIzaSyAqAo0-uDFPLPIxwKYEEO3jdBZUVu2J9V4'
     },
+    devIndicators: {
+        buildActivity: false, // Disable build activity indicator
+        autoPrerender: false, // Disable red error overlay
+      },
+      async redirects() {
+        return [
+          {
+            source: '/', // Root route
+            destination: '/user', // Redirect to /user
+            permanent: true, // Permanent redirect (301)
+          },
+        ];
+      },
+      webpack(config) {
+        config.module.rules.push({
+          test: /\.svg$/,
+          use: ["@svgr/webpack"],
+        });
+        return config;
+      },
+  
   };
   
   export default nextConfig;

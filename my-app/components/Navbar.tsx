@@ -12,15 +12,15 @@ interface NavbarItem {
 
 const navbarItems: NavbarItem[] = [
   { href: "/", icon: Home, label: "Home" },
-  { href: "/report", icon: MapPin, label: "Report Waste" },
-  { href: "/collect", icon: Trash, label: "Collect Waste" },
-  { href: "/rewards", icon: Heart, label: "Rewards" },
-  { href: "/leaderboard", icon: Heart, label: "Leaderboard" },
-  { href: "/market", icon: Medal, label: "Waste Marketplace" },
+  { href: "/user/report", icon: MapPin, label: "Report Waste" },
+  { href: "/user/collect", icon: Trash, label: "Collect Waste" },
+  { href: "/user/rewards", icon: Heart, label: "Rewards" },
+  { href: "/user/leaderboard", icon: Heart, label: "Leaderboard" },
+  { href: "/user/market", icon: Medal, label: "Waste Marketplace" },
   // { href: "/Badge", icon: Medal, label: "Badge" },
   // { href: "/admin", icon: Settings, label: "Admin" }, // Added icon
-  { href: "/recycling-recommendations", icon: Recycle, label: "Recycle Recommendations" },
-  { href: "/certificate/questions", icon: Medal, label: "Certificate" },
+  { href: "/user/recycling-recommendations", icon: Recycle, label: "Recycle Recommendations" },
+  { href: "/user/certificate/questions", icon: Medal, label: "Certificate" },
 ];
 
 interface NavbarProps {

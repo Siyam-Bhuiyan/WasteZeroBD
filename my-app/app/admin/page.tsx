@@ -1,28 +1,45 @@
 "use client";
 
-import React from "react";
-import FeaturedInfo from "@/app/admin/components/featuredInfo/page"
-import Chart from "@/app/admin/components/chart/page";
-import WidgetSm from "@/app/admin/components/widgetSm/page";
-import WidgetLg from "@/app/admin/components/widgetLg/page";
+import { usePathname } from "next/navigation";
+import Dashboard from "./dashboard/page";
+import Team from "./team/page";
+import Contacts from "./contacts/page";
+import Invoices from "./invoices/page";
+import Form from "./form/page";
+import Bar from "./bar/page";
+import Pie from "./pie/page";
+import Line from "./line/page";
+import Calendar from "./calendar/page";
+import Geography from "./geography/page";
 
-const AdminDashboard: React.FC = () => {
-  const data = [
-    { name: "Jan", "Active User": 4000 },
-    { name: "Feb", "Active User": 3000 },
-    { name: "Mar", "Active User": 5000 },
-  ];
+export default function AdminPage() {
+  const pathname = usePathname();
 
-  return (
-    <div>
-      <FeaturedInfo />
-      <Chart data={data} title="User Analytics" dataKey="Active User" grid />
-      <div className="widgets">
-        <WidgetSm />
-        <WidgetLg />
-      </div>
-    </div>
-  );
-};
+  // Dynamically render the correct page based on the route
+  const renderContent = () => {
+    switch (pathname) {
+      case "/admin/team":
+        return <Team />;
+      case "/admin/contacts":
+        return <Contacts />;
+      case "/admin/invoices":
+        return <Invoices />;
+      case "/admin/form":
+        return <Form />;
+      case "/admin/bar":
+        return <Bar />;
+      case "/admin/pie":
+        return <Pie />;
+      case "/admin/line":
+        return <Line />;
+      case "/admin/calendar":
+        return <Calendar />;
+      case "/admin/geography":
+        return <Geography />;
+      default:
+        return <Dashboard />;
+    }
+  };
 
-export default AdminDashboard;
+  return renderContent();
+}
