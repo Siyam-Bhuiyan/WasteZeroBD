@@ -1,6 +1,16 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { MapPin, Trash, Coins, Medal, Settings, Home, Recycle } from "lucide-react";
+import {
+  MapPin,
+  Trash,
+  Coins,
+  Medal,
+  Settings,
+  Home,
+  Recycle,
+  ShoppingBag, // Icon for Waste Marketplace
+  Trophy, // Icon for Certificate
+} from "lucide-react"; // Updated Icons
 
 const sidebarItems = [
   { href: "/", icon: Home, label: "Homepage" },
@@ -8,9 +18,21 @@ const sidebarItems = [
   { href: "/user/collect", icon: Trash, label: "Collect Waste" },
   { href: "/user/rewards", icon: Coins, label: "Rewards" },
   { href: "/user/leaderboard", icon: Medal, label: "Leaderboard" },
-  { href: "/user/market", icon: Medal, label: "Waste Marketplace" },
-  { href: "/user/recycling-recommendations", icon: Recycle, label: "Recycle Recommendations" },
-  { href: "/user/certificate/questions", icon: Medal, label: "Certificate" },
+  {
+    href: "/user/market",
+    icon: ShoppingBag, // New Icon for Waste Marketplace
+    label: "Waste Marketplace",
+  },
+  {
+    href: "/user/recycling-recommendations",
+    icon: Recycle,
+    label: "Recycle Recommendations",
+  },
+  {
+    href: "/user/certificate/questions",
+    icon: Trophy, // New Icon for Certificate
+    label: "Certificate",
+  },
 ];
 
 interface SidebarProps {
@@ -18,65 +40,59 @@ interface SidebarProps {
   toggleSidebar: () => void;
 }
 
-export default function Sidebar({ isSidebarOpen, toggleSidebar }: SidebarProps) {
+export default function Sidebar({
+  isSidebarOpen,
+  toggleSidebar,
+}: SidebarProps) {
   const pathname = usePathname();
 
   return (
-    <>
-      {/* Sidebar */}
-      <aside
-        className={`fixed inset-y-0 left-0 z-30 w-80 bg-[#DFF6DD] shadow-lg transform transition-transform duration-300 ease-in-out ${
-          isSidebarOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
-      >
-        <nav className="h-full flex flex-col">
-          {/* Sidebar Header */}
-          <div className="text-center py-6 bg-[#006A4E] text-white font-bold text-xl">
-            WasteZeroBangladesh
-          </div>
+    <div
+      className={`h-screen bg-black text-white shadow-lg transition-all duration-300 ease-in-out ${
+        isSidebarOpen ? "w-72" : "w-24"
+      } fixed inset-y-0 left-0 z-30`}
+    >
+      {/* Sidebar Header */}
+      <div className="flex items-center justify-between px-6 py-6 bg-gray-800 font-bold text-xl">
+        <span className={isSidebarOpen ? "block" : "hidden"}>
+          WasteZeroBangladesh
+        </span>
+        <span className={isSidebarOpen ? "hidden" : "block"}>WZB</span>
+        <button onClick={toggleSidebar} className="text-white">
+          <span>{isSidebarOpen ? "←" : "→"}</span>
+        </button>
+      </div>
 
-          {/* Sidebar Items */}
-          <div className="flex flex-col mt-6 space-y-3 px-6">
-            {sidebarItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`block w-full px-4 py-3 text-left rounded-md text-base font-medium transition-colors ${
-                  pathname === item.href
-                    ? "bg-[#006A4E] text-white"
-                    : "text-[#006A4E] hover:bg-[#006A4E] hover:text-white"
-                }`}
-              >
-                {item.icon && <item.icon className="inline-block mr-3 h-5 w-5" />}
-                {item.label}
-              </Link>
-            ))}
-          </div>
+      {/* Sidebar Items */}
+      <nav className="mt-6 flex flex-col space-y-3">
+        {sidebarItems.map((item) => (
+          <Link
+            key={item.href}
+            href={item.href}
+            className={`flex items-center px-6 py-3 rounded-md font-medium transition-all duration-300 ${
+              pathname === item.href
+                ? "bg-gray-700 text-white"
+                : "text-gray-300 hover:bg-gray-700 hover:text-white"
+            }`}
+          >
+            <item.icon className="h-6 w-6" />
+            {isSidebarOpen && <span className="ml-4">{item.label}</span>}
+          </Link>
+        ))}
 
-          {/* Sidebar Footer */}
-          <div className="px-6 mt-auto mb-6">
-            <Link
-              href="/settings"
-              className={`block w-full px-4 py-3 text-left rounded-md text-base font-medium transition-colors ${
-                pathname === "/settings"
-                  ? "bg-[#006A4E] text-white"
-                  : "text-[#006A4E] hover:bg-[#006A4E] hover:text-white"
-              }`}
-            >
-              <Settings className="inline-block mr-3 h-5 w-5" />
-              Settings
-            </Link>
-          </div>
-        </nav>
-      </aside>
-
-      {/* Overlay (for mobile screens) */}
-      {isSidebarOpen && (
-        <div
-          className="fixed inset-0 z-20 bg-black opacity-50"
-          onClick={toggleSidebar}
-        ></div>
-      )}
-    </>
+        {/* Sidebar Footer */}
+        <Link
+          href="/settings"
+          className={`flex items-center px-6 py-3 mt-3 rounded-md font-medium transition-all ${
+            pathname === "/settings"
+              ? "bg-gray-700 text-white"
+              : "text-gray-300 hover:bg-gray-700 hover:text-white"
+          }`}
+        >
+          <Settings className="h-6 w-6" />
+          {isSidebarOpen && <span className="ml-4">Settings</span>}
+        </Link>
+      </nav>
+    </div>
   );
 }

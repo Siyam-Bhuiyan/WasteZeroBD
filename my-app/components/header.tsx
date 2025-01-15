@@ -3,8 +3,6 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import Image from "next/image";
-import logo from "@/components/logo.png";
 import {
   Menu,
   ChevronDown,
@@ -16,8 +14,8 @@ import {
 } from "lucide-react";
 import {
   DropdownMenu,
-  DropdownMenuItem,
   DropdownMenuContent,
+  DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
@@ -43,7 +41,7 @@ const chainConfig = {
   blockExplorerUrl: "https://sepolia.etherscan.io",
   ticker: "ETH",
   tickerName: "Ethereum",
-  logo: "https://cryptologos.cc/logos/ethereum-eth-logo.png",
+  //logo: "https://cryptologos.cc/logos/ethereum-eth-logo.png",
 };
 
 const privateKeyProvider = new EthereumPrivateKeyProvider({
@@ -143,23 +141,21 @@ export default function Header({ onMenuClick, totalEarnings }: HeaderProps) {
   };
 
   return (
-    <header className="bg-[#DFF6DD] border-b border-[#006A4E] sticky top-0 z-50 shadow-md">
+    <header className="bg-black text-white border-b border-gray-800 sticky top-0 z-50 shadow-md">
       <div className="flex items-center justify-between px-4 py-3">
         {/* Left Section */}
         <div className="flex items-center">
+          {/* Sidebar Toggle Button */}
           <Button
             variant="ghost"
             size="icon"
-            className="mr-2 md:mr-4"
+            className="mr-2 text-white"
             onClick={onMenuClick}
           >
-            <Menu className="h-6 w-6 text-[#006A4E]" />
+            <Menu className="h-6 w-6" />
           </Button>
-          <Link href="/" className="flex items-center">
-            <Image src={logo} alt="Logo" className="h-10 w-10 mr-2" />
-            <span className="font-bold text-xl text-[#006A4E]">
-              WasteZeroBangladesh
-            </span>
+          <Link href="/" className="font-bold text-xl">
+            WasteZeroBangladesh
           </Link>
         </div>
 
@@ -168,44 +164,51 @@ export default function Header({ onMenuClick, totalEarnings }: HeaderProps) {
           {/* Notifications */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="mr-3 relative">
-                <Bell className="h-5 w-5 text-[#006A4E]" />
+              <Button
+                variant="ghost"
+                size="icon"
+                className="relative text-white"
+              >
+                <Bell className="h-5 w-5" />
                 {notification.length > 0 && (
-                  <Badge className="absolute -top-1 -right-1 px-1 min-w-[1.2rem] h-5">
+                  <Badge className="absolute -top-1 -right-1 px-1 min-w-[1.2rem] h-5 bg-red-500 text-white">
                     {notification.length}
                   </Badge>
                 )}
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-64">
+            <DropdownMenuContent
+              align="end"
+              className="w-64 bg-black text-white border border-gray-700"
+            >
               {notification.length > 0 ? (
                 notification.map((n) => (
-                  <DropdownMenuItem key={n.id}>
+                  <DropdownMenuItem key={n.id} className="hover:bg-gray-800">
                     <div className="flex flex-col">
                       <span className="font-medium">{n.type}</span>
-                      <span className="text-sm text-gray-500">{n.message}</span>
+                      <span className="text-sm text-gray-400">{n.message}</span>
                     </div>
                   </DropdownMenuItem>
                 ))
               ) : (
-                <DropdownMenuItem>No new notifications</DropdownMenuItem>
+                <DropdownMenuItem className="hover:bg-gray-800">
+                  No new notifications
+                </DropdownMenuItem>
               )}
             </DropdownMenuContent>
           </DropdownMenu>
 
           {/* Balance */}
-          <div className="mr-3 flex items-center bg-[#BDE0C0] rounded-full px-3 py-1">
-            <Coins className="h-5 w-5 text-[#006A4E] mr-1" />
-            <span className="font-semibold text-sm text-[#006A4E]">
-              {balance.toFixed(2)}
-            </span>
+          <div className="mr-3 flex items-center bg-gray-900 rounded-full px-3 py-1">
+            <Coins className="h-5 w-5 text-white mr-1" />
+            <span className="font-semibold text-sm">{balance.toFixed(2)}</span>
           </div>
 
           {/* Login/Logout */}
           {!isLoggedIn ? (
             <Button
               onClick={login}
-              className="bg-[#006A4E] hover:bg-[#005A3E] text-white font-medium px-6 rounded-full shadow-md transition-all"
+              className="bg-white text-black font-medium px-6 rounded-full shadow-md transition-all hover:bg-gray-200"
             >
               Login
               <LogIn className="ml-2 h-5 w-5" />
@@ -213,30 +216,39 @@ export default function Header({ onMenuClick, totalEarnings }: HeaderProps) {
           ) : (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="flex items-center gap-2">
-                  <div className="h-8 w-8 rounded-full bg-[#BDE0C0] flex items-center justify-center">
-                    <User className="h-4 w-4 text-[#006A4E]" />
+                <Button
+                  variant="ghost"
+                  className="flex items-center gap-2 text-white"
+                >
+                  <div className="h-8 w-8 rounded-full bg-gray-800 flex items-center justify-center">
+                    <User className="h-4 w-4" />
                   </div>
-                  <span className="text-[#006A4E] font-medium">
+                  <span className="font-medium">
                     {userInfo?.name || "Anonymous"}
                   </span>
-                  <ChevronDown className="h-4 w-4 text-[#006A4E]" />
+                  <ChevronDown className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuItem>
+              <DropdownMenuContent
+                align="end"
+                className="w-56 bg-black text-white border border-gray-700"
+              >
+                <DropdownMenuItem className="hover:bg-gray-800">
                   <Link href="/profile" className="flex items-center gap-2">
                     <User className="h-4 w-4" />
                     Profile
                   </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem>
+                <DropdownMenuItem className="hover:bg-gray-800">
                   <Link href="/admin_auth" className="flex items-center gap-2">
                     <User className="h-4 w-4" />
                     Admin
                   </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem className="text-red-600" onClick={logout}>
+                <DropdownMenuItem
+                  className="text-red-500 hover:bg-gray-800"
+                  onClick={logout}
+                >
                   <LogOut className="h-4 w-4 mr-2" />
                   Sign Out
                 </DropdownMenuItem>

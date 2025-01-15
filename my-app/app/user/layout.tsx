@@ -2,20 +2,13 @@
 
 import { useState } from "react";
 import { usePathname } from "next/navigation";
-import { Inter } from "next/font/google";
-import "./globals.css";
-import Header from "@/components/header";
+import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import Script from "next/script";
+import "./globals.css";
 import { Toaster } from "react-hot-toast";
 
-const inter = Inter({ subsets: ["latin"] });
-
-export default function UserLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function UserLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
@@ -29,26 +22,15 @@ export default function UserLayout({
   return (
     <html lang="en">
       <head>
-        <Script
-          src="https://upload-widget.cloudinary.com/global/all.js"
-          strategy="beforeInteractive"
-        />
+        <Script src="https://upload-widget.cloudinary.com/global/all.js" strategy="beforeInteractive" />
       </head>
-      <body className={`${inter.className} flex`}>
+      <body className="flex">
         {/* Sidebar */}
-        {shouldShowSidebar && (
-          <Sidebar isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
-        )}
+        {shouldShowSidebar && <Sidebar isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />}
 
-        {/* Main Content with Header */}
-        <div className="flex-1 flex flex-col min-h-screen">
-          {/* Header */}
-          <Header
-            onMenuClick={toggleSidebar} // Pass the toggleSidebar function for the hamburger menu
-            totalEarnings={0} // Replace this with actual data if available
-          />
-
-          {/* Main Content */}
+        {/* Main Content */}
+        <div className="flex-1 flex flex-col">
+          <Header onMenuClick={toggleSidebar} totalEarnings={0} />
           <main className="flex-1 p-4 lg:p-8">{children}</main>
         </div>
 
