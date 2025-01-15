@@ -3,7 +3,7 @@
 import { usePathname } from "next/navigation";
 import Dashboard from "./dashboard/page";
 import Team from "./team/page";
-import Contacts from "./contacts/page";
+import Certificate from "./certificate/page";
 import Invoices from "./invoices/page";
 import Form from "./form/page";
 import Bar from "./bar/page";
@@ -20,8 +20,8 @@ export default function AdminPage() {
     switch (pathname) {
       case "/admin/team":
         return <Team />;
-      case "/admin/contacts":
-        return <Contacts />;
+      case "/admin/certificate":
+        return <Certificate />;
       case "/admin/invoices":
         return <Invoices />;
       case "/admin/form":
