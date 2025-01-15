@@ -21,7 +21,7 @@ const CertificateStatus: React.FC = () => {
           return;
         }
 
-        const response = await fetch("/api/certificates/approval-status", {
+        const response = await fetch("/user/api/certificates/approval-status", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ userId }),
@@ -64,7 +64,7 @@ const CertificateStatus: React.FC = () => {
 
     setLoading(true);
     try {
-      const response = await fetch("/api/payment-intent", {
+      const response = await fetch("/user/api/payment-intent", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
       });
@@ -89,7 +89,7 @@ const CertificateStatus: React.FC = () => {
 
   const handleGenerateCertificate = () => {
     // Navigate to the /badge route
-    router.push("/Badge");
+    router.push("/user/Badge");
   };
 
   if (error) {

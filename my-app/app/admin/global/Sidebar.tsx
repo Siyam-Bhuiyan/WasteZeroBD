@@ -106,9 +106,9 @@ const SidebarComponent = () => {
             <MenuItem
               icon={<ContactsOutlinedIcon />}
               component="a"
-              href="/admin/contacts"
+              href="/admin/certificate"
             >
-              Contacts Information
+              Certificate Review
             </MenuItem>
             <MenuItem
               icon={<ReceiptOutlinedIcon />}

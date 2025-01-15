@@ -34,7 +34,7 @@ const CertificateQuestions: React.FC = () => {
     }
 
     try {
-      const response = await fetch("/api/certificates/submit", {
+      const response = await fetch("/user/api/certificates/submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ answers, email }), // Use the answers state

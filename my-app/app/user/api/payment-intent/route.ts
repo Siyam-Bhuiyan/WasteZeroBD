@@ -20,8 +20,8 @@ export async function POST() {
         },
       ],
       mode: "payment",
-      success_url: `http://localhost:3000/certificate/status?success=true`,
-      cancel_url: `http://localhost:3000/certificate/status?canceled=true`,
+      success_url: `http://localhost:3000/user/certificate/status?success=true`,
+      cancel_url: `http://localhost:3000/user/certificate/status?canceled=true`,
     });
 
     return NextResponse.json({ sessionId: session.id }, { status: 200 });
