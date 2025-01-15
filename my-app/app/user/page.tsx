@@ -7,24 +7,25 @@ import { Poppins } from 'next/font/google'
 import Link from 'next/link'
 import ContractInteraction from '@/components/ContractInteraction'
 import { getRecentReports, getAllRewards, getWasteCollectionTasks } from '@/utils/db/actions'
+
 const poppins = Poppins({ 
   weight: ['300', '400', '600'],
   subsets: ['latin'],
   display: 'swap',
 })
 
-function AnimatedDustbin() {
-  return (
-    <div className="relative w-40 h-40 mx-auto mb-8">
-      {/* GIF */}
-      <img 
-        src="https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExMjRjNTlyMHlqeWJqMzVweHI2bjBza3Nybmpoa2xuc3BxYTVkanp4OCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/Dh8ULOqmVxHGoGSrku/giphy.gif" 
-        alt="Animated Dustbin GIF" 
-        className="relative w-full h-full object-contain rounded-full shadow-lg"
-      />     
-    </div>
-  );
-}
+// function AnimatedDustbin() {
+//   return (
+//     <div className="relative w-40 h-40 mx-auto mb-8">
+//       {/* GIF */}
+//       <img 
+//         src="https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExMjRjNTlyMHlqeWJqMzVweHI2bjBza3Nybmpoa2xuc3BxYTVkanp4OCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/Dh8ULOqmVxHGoGSrku/giphy.gif" 
+//         alt="Animated Dustbin GIF" 
+//         className="relative w-full h-full object-contain rounded-full shadow-lg"
+//       />     
+//     </div>
+//   );
+// }
 
 
 export default function Home() {
@@ -83,7 +84,7 @@ export default function Home() {
   return (
     <div className={`container mx-auto px-4 py-16 ${poppins.className}`}>
       <section className="text-center mb-20">
-        <AnimatedDustbin />
+        
         <h1 className="text-6xl font-bold mb-6 text-gray-800 tracking-tight">
          <span className="text-red-600">Zero Waste</span> <span className="text-[#006A4E]">Bangladesh</span>
         </h1>
