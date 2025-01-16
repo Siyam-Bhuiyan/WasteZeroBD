@@ -2,15 +2,15 @@
 
 import { usePathname } from "next/navigation";
 import Dashboard from "./dashboard/page";
-import Team from "./team/page";
+import Users from "./users/page";
 import Certificate from "./certificate/page";
-import Invoices from "./invoices/page";
 import Form from "./form/page";
 import Bar from "./bar/page";
 import Pie from "./pie/page";
 import Line from "./line/page";
 import Calendar from "./calendar/page";
 import Geography from "./geography/page";
+import Transactions from "./transactions/page";
 
 export default function AdminPage() {
   const pathname = usePathname();
@@ -18,12 +18,12 @@ export default function AdminPage() {
   // Dynamically render the correct page based on the route
   const renderContent = () => {
     switch (pathname) {
-      case "/admin/team":
-        return <Team />;
+      case "/admin/users":
+        return <Users />;
       case "/admin/certificate":
         return <Certificate />;
-      case "/admin/invoices":
-        return <Invoices />;
+      case "/admin/transactions":
+        return <Transactions />;
       case "/admin/form":
         return <Form />;
       case "/admin/bar":

@@ -1,18 +1,9 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+import axios, { AxiosResponse } from "axios";
 import { toast } from "react-hot-toast";
-import { loadStripe } from "@stripe/stripe-js";
-import jsPDF from "jspdf";
-import axios, {AxiosResponse} from "axios";
 
-// Define the type for the Axios response
-interface BkashApiResponse {
-  status: boolean;
-  data: {
-    bkashURL: string;
-  };
-}
 const CertificateStatus: React.FC = () => {
   const [paymentStatus, setPaymentStatus] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -20,7 +11,11 @@ const CertificateStatus: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const searchParams = useSearchParams();
   const router = useRouter();
-  const userEmail= localStorage.getItem('userEmail')
+
+  // Retrieve user data from localStorage
+  const userEmail = localStorage.getItem("userEmail");
+  const userName = localStorage.getItem("userName");
+
   useEffect(() => {
     const checkApprovalStatus = async () => {
       try {
@@ -41,13 +36,12 @@ const CertificateStatus: React.FC = () => {
         }
 
         const result = await response.json();
-        console.log("Approval status response:", result); // Log the response
         setApproved(result.approved);
+
         if (!result.approved) {
-          setPaymentStatus(false); // Ensure payment is blocked if not approved
+          setPaymentStatus(false);
         }
       } catch (error) {
-        console.error("Error checking approval status:", error);
         setError("Failed to fetch approval status. Please try again later.");
       }
     };
@@ -56,7 +50,6 @@ const CertificateStatus: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    // Only set payment status after ensuring approval
     if (approved) {
       const success = searchParams.get("success");
       if (success === "true") {
@@ -70,20 +63,26 @@ const CertificateStatus: React.FC = () => {
       alert("Your certificate has not been approved by the admin yet.");
       return;
     }
-  
+
     setLoading(true);
-  
+
     try {
+      if (!userEmail || !userName) {
+        alert("User information is missing. Please log in.");
+        return;
+      }
+
       // Make a POST request to the SSLCommerz payment intent endpoint
       const result: AxiosResponse<{ success: boolean; url: string }> = await axios.post(
         "/user/api/sslcommerz-intent/sslcommerz/create-payment",
         {
-          amount: "500", // Example amount
+          amount: 500, // Example amount
+          userEmail,
+          userName,
+          type: "certificate",
         }
       );
-  
-      console.log("🚀 ~ handlePayment ~ result:", result);
-  
+
       if (result.data.success && result.data.url) {
         // Redirect to the SSLCommerz payment URL
         window.location.href = result.data.url;
@@ -97,7 +96,6 @@ const CertificateStatus: React.FC = () => {
       setLoading(false);
     }
   };
-  
 
   const handleGenerateCertificate = () => {
     // Navigate to the /badge route
@@ -105,12 +103,15 @@ const CertificateStatus: React.FC = () => {
   };
 
   if (error) {
-    return <div>Error: {error}</div>;
-  }
-
-
-  if (error) {
-    return <div>Error: {error}</div>;
+    return (
+      <div className="error-container">
+        <h1>Error</h1>
+        <p>{error}</p>
+        <button onClick={() => window.location.reload()} className="reload-button">
+          Reload
+        </button>
+      </div>
+    );
   }
 
   return (
@@ -121,10 +122,7 @@ const CertificateStatus: React.FC = () => {
       ) : paymentStatus ? (
         <div>
           <p>Payment completed successfully!</p>
-          <button
-            onClick={handleGenerateCertificate}
-            className="generate-button"
-          >
+          <button onClick={handleGenerateCertificate} className="generate-button" style={generateButtonStyle}>
             Generate Certificate
           </button>
         </div>
@@ -135,6 +133,15 @@ const CertificateStatus: React.FC = () => {
             onClick={handlePayment}
             className="pay-button"
             disabled={loading}
+            style={{
+              backgroundColor: loading ? "red" : "green",
+              color: "white",
+              border: "none",
+              borderRadius: "4px",
+              padding: "10px 20px",
+              cursor: loading ? "not-allowed" : "pointer",
+              fontSize: "16px",
+            }}
           >
             {loading ? "Processing..." : "Pay Now"}
           </button>
@@ -142,6 +149,16 @@ const CertificateStatus: React.FC = () => {
       )}
     </div>
   );
+};
+
+const generateButtonStyle = {
+  backgroundColor: "#4caf50",
+  color: "white",
+  border: "none",
+  borderRadius: "4px",
+  padding: "10px 20px",
+  cursor: "pointer",
+  fontSize: "16px",
 };
 
 export default CertificateStatus;
