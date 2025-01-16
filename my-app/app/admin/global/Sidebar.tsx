@@ -99,9 +99,9 @@ const SidebarComponent = () => {
             <MenuItem
               icon={<PeopleOutlinedIcon />}
               component="a"
-              href="/admin/team"
+              href="/admin/users"
             >
-              Manage Team
+              Manage Users
             </MenuItem>
             <MenuItem
               icon={<ContactsOutlinedIcon />}
@@ -113,9 +113,9 @@ const SidebarComponent = () => {
             <MenuItem
               icon={<ReceiptOutlinedIcon />}
               component="a"
-              href="/admin/invoices"
+              href="/admin/transactions"
             >
-              Invoices Balances
+              Transactions
             </MenuItem>
 
             {/* Pages Section */}

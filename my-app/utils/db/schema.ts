@@ -46,6 +46,7 @@ export const Users = pgTable("users", {
   id: serial("id").primaryKey(),
   email: varchar("email", { length: 255 }).notNull().unique(),
   name: varchar("name", { length: 255 }).notNull(),
+  banned: boolean("banned").default(false).notNull(), // Ban status
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -153,3 +154,14 @@ export const Images = pgTable('images', {
   fileType: varchar('file_type', { length: 50 }).notNull(),
   uploadedAt: timestamp('uploaded_at', { withTimezone: true }).defaultNow().notNull(),
 });
+
+export const Payment = pgTable("payments", {
+  id: serial("id").primaryKey(), // Auto-incrementing primary key
+  transactionId: varchar("transactionId", { length: 50 }).unique(), // Unique transaction ID
+  userEmail: varchar("userEmail").references(() => Users.email).notNull(), // Foreign key referencing Users table
+  type: varchar("type", { length: 20 }).notNull(), // 'residential service', 'certificate', or 'buy&sell'
+  amount: integer("amount").notNull(),
+  userName: text("userName").notNull(),
+  date: timestamp("date").defaultNow().notNull(),
+});
+
