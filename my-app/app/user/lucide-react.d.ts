@@ -25,5 +25,13 @@ declare module "lucide-react" {
     export const Calendar: React.FC<React.SVGProps<SVGSVGElement>>; // Added Calendar
     export const Weight: React.FC<React.SVGProps<SVGSVGElement>>; // Added Weight
     export const Page: React.FC<React.SVGProps<SVGSVGElement>>;
+    export const Trophy: React.FC<React.SVGProps<SVGSVGElement>>;
+    export const Award: React.FC<React.SVGProps<SVGSVGElement>>;
+    export const Download: React.FC<React.SVGProps<SVGSVGElement>>;
+    export const Shield: React.FC<React.SVGProps<SVGSVGElement>>;
+    export const Star: React.FC<React.SVGProps<SVGSVGElement>>;
+    export const Leaf: React.FC<React.SVGProps<SVGSVGElement>>;
+    export const Globe: React.FC<React.SVGProps<SVGSVGElement>>;
+    export const Recycle: React.FC<React.SVGProps<SVGSVGElement>>;
+    export const TreePine: React.FC<React.SVGProps<SVGSVGElement>>;
   }
-  
