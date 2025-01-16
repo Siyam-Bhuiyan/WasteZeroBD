@@ -145,9 +145,9 @@ const SidebarComponent = () => {
             <MenuItem
               icon={<HelpOutlineOutlinedIcon />}
               component="a"
-              href="/faq"
+              href="/admin/residential"
             >
-              FAQ Page
+              Residential Service
             </MenuItem>
 
             {/* Charts Section */}

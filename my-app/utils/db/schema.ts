@@ -165,3 +165,22 @@ export const Payment = pgTable("payments", {
   date: timestamp("date").defaultNow().notNull(),
 });
 
+export const MarketplaceOrders = pgTable('marketplace_orders', {
+  id: serial('id').primaryKey(),
+  buyerId: integer('buyer_id').references(() => Users.id).notNull(),
+  sellerId: integer('seller_id').references(() => Users.id).notNull(),
+  listingId: integer('listing_id').references(() => WasteListings.id).notNull(),
+  quantity: varchar('quantity', { length: 255 }).notNull(),
+  totalPrice: decimal('total_price', { precision: 10, scale: 2 }).notNull(),
+  status: varchar('status', { length: 50 }).default('pending').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export const Cart = pgTable('cart', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').references(() => Users.id).notNull(),
+  listingId: integer('listing_id').references(() => WasteListings.id).notNull(),
+  quantity: varchar('quantity', { length: 255 }).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});

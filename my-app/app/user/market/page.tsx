@@ -10,9 +10,9 @@ export default function WasteMarketplace() {
   const handleSelect = (option: string) => {
     setChoice(option);
     if (option === 'buy') {
-      router.push('/market/buy');
+      router.push('/user/market/buy');
     } else if (option === 'sell') {
-      router.push('/market/sell');
+      router.push('/user/market/sell');
     }
   };
 
