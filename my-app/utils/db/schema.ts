@@ -26,6 +26,7 @@ export const WasteListings = pgTable("waste_listings", {
   status: varchar("status", { length: 20 }).notNull().default("available"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   money: varchar("money", { length: 255 }).notNull(),
+  imageUrl: varchar("imageUrl", { length: 512 })
 });
 
 export const buyRequests = pgTable('buy_requests', {

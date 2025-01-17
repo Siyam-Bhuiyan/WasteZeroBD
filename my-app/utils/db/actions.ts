@@ -845,45 +845,31 @@ export type WasteListing = typeof WasteListings.$inferSelect;
 export type CartItem = typeof Cart.$inferSelect;
 export type MarketplaceOrder = typeof MarketplaceOrders.$inferSelect;
 
-export async function getWasteListings(filter?: { 
-  category?: string; 
-  searchTerm?: string;
-  userId?: number;
-}) {
-  try {
-    console.log("Fetching waste listings...");
-    let query = db.select().from(WasteListings).leftJoin(Users, eq(WasteListings.userId, Users.id));
 
-    // Filter by status
-    query = query.where(eq(WasteListings.status, "available"));
+export async function getWasteListings() {
+  const listings = await db
+    .select({
+      waste_listings: WasteListings,
+      users: Users, // Fetch user details for the seller
+    })
+    .from(WasteListings)
+    .leftJoin(Users, eq(Users.id, WasteListings.userId)); // Use `eq` for join condition
 
-    // Filter by category if provided
-    if (filter?.category && filter.category !== "all") {
-      query = query.where(eq(WasteListings.wasteType, filter.category));
-    }
-
-    // Filter by search term if provided
-    if (filter?.searchTerm) {
-      query = query.where(
-        or(
-          like(WasteListings.title, `%${filter.searchTerm}%`),
-          like(WasteListings.description, `%${filter.searchTerm}%`)
-        )
-      );
-    }
-
-    // Filter by user if provided
-    if (filter?.userId) {
-      query = query.where(eq(WasteListings.userId, filter.userId));
-    }
-
-    const listings = await query.orderBy(desc(WasteListings.createdAt));
-    console.log("Listings fetched successfully:", listings);
-    return listings;
-  } catch (error) {
-    console.error("Error fetching waste listings:", error);
-    return [];
-  }
+  // Transform data to include seller details and image URL
+  return listings.map((listing) => ({
+    id: listing.waste_listings.id,
+    title: listing.waste_listings.title,
+    description: listing.waste_listings.description,
+    location: listing.waste_listings.location,
+    wasteType: listing.waste_listings.wasteType,
+    quantity: listing.waste_listings.quantity,
+    price: listing.waste_listings.price,
+    status: listing.waste_listings.status,
+    createdAt: listing.waste_listings.createdAt,
+    imageUrl: listing.waste_listings.imageUrl || null, // Ensure imageUrl is included
+    seller: listing.users?.name || "Unknown Seller",
+    sellerEmail: listing.users?.email || "Unknown Email",
+  }));
 }
 
 export async function createWasteListing(
@@ -894,6 +880,7 @@ export async function createWasteListing(
   wasteType: string,
   quantity: string,
   price: number,
+  imageUrl: string
  
 ) {
   try {
@@ -907,7 +894,7 @@ export async function createWasteListing(
         wasteType,
         quantity,
         price,
-        
+        imageUrl,
         status: 'available',
         money: price.toString(),
       })
@@ -1125,7 +1112,7 @@ export async function handleSell(
   wasteType: string,
   quantity: string,
   price: number,
-  
+  imageUrl: string | null
 ) {
   try {
     const [listing] = await db
@@ -1138,7 +1125,7 @@ export async function handleSell(
         wasteType,
         quantity,
         price,
-       
+        imageUrl,
         money: price.toString(),
         status: "available", // Default status
         verificationResult: {}, // Default empty JSON object for verification

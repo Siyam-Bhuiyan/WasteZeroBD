@@ -14,10 +14,12 @@ const SellWaste = () => {
     price: "",
   });
 
-  const [uploadedFiles, setUploadedFiles] = useState<string[]>([]); // Holds Cloudinary URLs
+  const [uploadedFiles, setUploadedFiles] = useState<string[]>([]);
   const [status, setStatus] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
+  const [listingId, setListingId] = useState<number | null>(null);
 
+  // Fetch userId from localStorage on initial render
   useEffect(() => {
     if (typeof window !== "undefined") {
       const storedUserId = localStorage.getItem("userId");
@@ -25,20 +27,54 @@ const SellWaste = () => {
     }
   }, []);
 
-  const handleChange = (e) => {
+  // Handle form input changes
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const openCloudinaryWidget = async () => {
+  // Create a new listing
+  const createListing = async () => {
     try {
-      const response = await fetch("/user/api/generateSignature", {
+      const response = await fetch("/user/api/market/sell", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...formData,
+          userId,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setListingId(data.listing.id); // Save the generated listing ID
+        toast.success("Listing created successfully! Now upload images.");
+        return data.listing.id;
+      } else {
+        setStatus(`Error: ${data.message}`);
+        return null;
+      }
+    } catch (error) {
+      console.error("Error in createListing:", error);
+      setStatus("Failed to create listing. Please try again later.");
+      return null;
+    }
+  };
+
+  // Open the Cloudinary widget for image upload
+  const openCloudinaryWidget = async (listingId: number) => {
+    try {
+      const response = await fetch("/user/api/generateSalesSig", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           folder: "residential_waste_management",
           userId,
           uploadPreset: "okayish",
+          listingId, // Include the listing ID
         }),
       });
 
@@ -52,18 +88,30 @@ const SellWaste = () => {
       const widget = (window as any).cloudinary.createUploadWidget(
         {
           cloudName: "dugx8scku",
-          uploadPreset: "okayish",
-          uploadSignature: signature,
-          uploadSignatureTimestamp: timestamp,
+          uploadPreset: "okayish", // Your signed preset
+          uploadSignature: signature, // Generated from backend
+          uploadSignatureTimestamp: timestamp, // Same timestamp from backend
           folder: "residential_waste_management",
           apiKey: "858892213842935",
-          context: { custom: `userId=${userId}` },
+          context: { custom: `listingId=${listingId}` }, // Include your custom metadata
           resourceType: "image",
         },
-        (error: any, result: any) => {
+        async (error: any, result: any) => {
           if (!error && result.event === "success") {
             console.log("Upload successful:", result.info);
+
+            // Save image data in your backend
+            await fetch("/user/api/fetchSalesPic", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                listingId,
+                imageUrl: result.info.secure_url, // Pass the uploaded image URL
+              }),
+            });
+
             setUploadedFiles((prev) => [...prev, result.info.secure_url]);
+            toast.success("Image uploaded and saved successfully!");
           } else if (error) {
             console.error("Upload failed:", error);
           }
@@ -76,66 +124,31 @@ const SellWaste = () => {
     }
   };
 
-  const handleSubmit = async (e) => {
+  // Handle form submission
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (
-      !formData.title ||
-      !formData.description ||
-      !formData.location ||
-      !formData.quantity ||
-      !formData.price ||
-      uploadedFiles.length === 0
-    ) {
-      setStatus("Please fill in all fields and upload an image.");
+    if (!formData.title || !formData.location || !formData.quantity || !formData.price) {
+      setStatus("Please fill in all required fields.");
       return;
     }
 
-    try {
-      const response = await fetch("/user/api/market/sell", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...formData,
-          userId,
-          fileUrls: uploadedFiles, // Include uploaded files
-        }),
-      });
+    const newListingId = await createListing();
 
-      const data = await response.json();
-
-      if (response.ok) {
-        setStatus("Listing created successfully!");
-        toast.success("Listing created successfully!");
-        setFormData({
-          title: "",
-          description: "",
-          location: "",
-          wasteType: "plastic",
-          quantity: "",
-          price: "",
-        });
-        setUploadedFiles([]);
-      } else {
-        setStatus(`Error: ${data.error}`);
-      }
-    } catch (error) {
-      setStatus("Failed to create listing. Please try again later.");
+    if (newListingId) {
+      openCloudinaryWidget(newListingId);
     }
   };
 
+  // Remove an uploaded image
   const removeImage = (indexToRemove: number) => {
-    setUploadedFiles((files) =>
-      files.filter((_, index) => index !== indexToRemove)
-    );
+    setUploadedFiles((files) => files.filter((_, index) => index !== indexToRemove));
   };
 
   return (
     <>
-      <Script
-        src="https://widget.cloudinary.com/v2.0/global/all.js"
-        strategy="beforeInteractive"
-      />
+      {/* Include the Cloudinary widget script */}
+      <Script src="https://widget.cloudinary.com/v2.0/global/all.js" strategy="beforeInteractive" />
 
       <form
         onSubmit={handleSubmit}
@@ -143,6 +156,7 @@ const SellWaste = () => {
       >
         <h1 className="text-2xl font-bold text-green-600">Sell Waste</h1>
 
+        {/* Form Fields */}
         <div>
           <label className="block text-gray-700 font-medium">Title</label>
           <input
@@ -218,13 +232,18 @@ const SellWaste = () => {
           />
         </div>
 
+        {/* Upload Waste Image */}
         <div>
-          <label className="block text-gray-700 font-medium">
-            Upload Waste Image
-          </label>
+          <label className="block text-gray-700 font-medium">Upload Waste Image</label>
           <button
             type="button"
-            onClick={openCloudinaryWidget}
+            onClick={() => {
+              if (listingId !== null) {
+                openCloudinaryWidget(listingId);
+              } else {
+                toast.error("Please create a listing before uploading images.");
+              }
+            }}
             className="w-full mt-1 bg-blue-600 text-white font-medium py-2 rounded-md hover:bg-blue-700"
           >
             Upload File
@@ -250,13 +269,15 @@ const SellWaste = () => {
           </div>
         </div>
 
+        {/* Submit Button */}
         <button
           type="submit"
           className="w-full bg-green-600 text-white font-medium py-2 rounded-md hover:bg-green-700"
         >
-          Create Listing
+          Create Listing and Upload Images
         </button>
 
+        {/* Status Message */}
         {status && (
           <p
             className={`mt-2 text-center text-sm ${
