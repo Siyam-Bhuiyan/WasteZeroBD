@@ -18,6 +18,7 @@ import BarChartOutlinedIcon from "@mui/icons-material/BarChartOutlined";
 import PieChartOutlineOutlinedIcon from "@mui/icons-material/PieChartOutlineOutlined";
 import TimelineOutlinedIcon from "@mui/icons-material/TimelineOutlined";
 import MapOutlinedIcon from "@mui/icons-material/MapOutlined";
+import { Trash } from "lucide-react";
 
 const SidebarComponent = () => {
   const theme = useTheme();
@@ -148,6 +149,13 @@ const SidebarComponent = () => {
               href="/admin/residential"
             >
               Residential Service
+            </MenuItem>
+            <MenuItem
+              icon={<Trash />}
+              component="a"
+              href="/admin/cleaners"
+            >
+              Cleaners
             </MenuItem>
 
             {/* Charts Section */}

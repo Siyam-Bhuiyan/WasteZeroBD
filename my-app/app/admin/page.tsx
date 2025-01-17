@@ -11,7 +11,9 @@ import Line from "./line/page";
 import Calendar from "./calendar/page";
 import Geography from "./geography/page";
 import Transactions from "./transactions/page";
-import Residential from "./residential/page"
+import Residential from "./residential/page";
+import Cleaners from "./cleaners/page";
+
 export default function AdminPage() {
   const pathname = usePathname();
 
@@ -36,6 +38,8 @@ export default function AdminPage() {
         return <Calendar />;
       case "/admin/geography":
         return <Geography />;
+        case "/admin/cleaners":
+        return <Cleaners />;
       case "/admin/residential":
         return <Residential />;
       case "/admin":
