@@ -1,27 +1,36 @@
-'use client'
+"use client";
 
-import { useState, useCallback, useEffect, useRef } from 'react'
-import dynamic from 'next/dynamic'
-import { Upload, CheckCircle, Loader, Navigation, MapPin } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { GoogleGenerativeAI } from "@google/generative-ai"
-import { createUser, getUserByEmail, createReport, getRecentReports } from '@/utils/db/actions'
-import { useRouter } from 'next/navigation'
-import { toast } from 'react-hot-toast'
-import { OpenStreetMapProvider, SearchResult, RawResult } from 'leaflet-geosearch'
+import { useState, useCallback, useEffect, useRef } from "react";
+import dynamic from "next/dynamic";
+import { Upload, CheckCircle, Loader, Navigation, MapPin } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { GoogleGenerativeAI } from "@google/generative-ai";
+import {
+  createUser,
+  getUserByEmail,
+  createReport,
+  getRecentReports,
+} from "@/utils/db/actions";
+import { useRouter } from "next/navigation";
+import { toast } from "react-hot-toast";
+import {
+  OpenStreetMapProvider,
+  SearchResult,
+  RawResult,
+} from "leaflet-geosearch";
 
 // Dynamically import the Map component with no SSR
-const MapComponent = dynamic(() => import('@/components/Map'), {
+const MapComponent = dynamic(() => import("@/components/Map"), {
   ssr: false,
   loading: () => (
     <div className="h-full w-full flex items-center justify-center bg-gray-100">
       <Loader className="animate-spin h-8 w-8 text-gray-400" />
     </div>
-  )
-})
+  ),
+});
 
 const provider = new OpenStreetMapProvider();
-const geminiApiKey = 'AIzaSyBQ-KCx7JC2ksgGCEIKosnfDNqzl6qgf2w';
+const geminiApiKey = "AIzaSyBQ-KCx7JC2ksgGCEIKosnfDNqzl6qgf2w";
 
 interface Report {
   id: number;
@@ -31,31 +40,38 @@ interface Report {
   createdAt: string;
 }
 
-
 export default function ReportPage() {
-  const [user, setUser] = useState<{ id: number; email: string; name: string } | null>(null);
+  const [user, setUser] = useState<{
+    id: number;
+    email: string;
+    name: string;
+  } | null>(null);
   const router = useRouter();
   const [reports, setReports] = useState<Report[]>([]);
   const [position, setPosition] = useState<[number, number] | null>(null);
-  const [searchResult, setSearchResult] = useState<SearchResult<RawResult> | null>(null);
+  const [searchResult, setSearchResult] =
+    useState<SearchResult<RawResult> | null>(null);
   const mapRef = useRef(null);
-  
+
   const [newReport, setNewReport] = useState({
-    location: '',
-    type: '',
-    amount: '',
+    location: "",
+    type: "",
+    amount: "",
   });
 
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
-  const [verificationStatus, setVerificationStatus] = useState<'idle' | 'verifying' | 'success' | 'failure'>('idle');
+  const [verificationStatus, setVerificationStatus] = useState<
+    "idle" | "verifying" | "success" | "failure"
+  >("idle");
   interface VerificationResult {
     wasteType: string;
     quantity: string;
     confidence: number;
   }
 
-  const [verificationResult, setVerificationResult] = useState<VerificationResult | null>(null);
+  const [verificationResult, setVerificationResult] =
+    useState<VerificationResult | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleLocationSearch = async () => {
@@ -67,11 +83,11 @@ export default function ReportPage() {
         const { x, y, label } = results[0];
         setSearchResult(results[0]);
         setPosition([y, x]);
-        setNewReport(prev => ({ ...prev, location: label }));
+        setNewReport((prev) => ({ ...prev, location: label }));
       }
     } catch (error) {
-      console.error('Error searching location:', error);
-      toast.error('Failed to find location. Please try again.');
+      console.error("Error searching location:", error);
+      toast.error("Failed to find location. Please try again.");
     }
   };
 
@@ -83,24 +99,28 @@ export default function ReportPage() {
 
   const handleLocationFound = (latlng: { lat: number; lng: number }) => {
     setPosition([latlng.lat, latlng.lng]);
-    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latlng.lat}&lon=${latlng.lng}`)
-      .then(res => res.json())
-      .then(data => {
-        setNewReport(prev => ({ 
-          ...prev, 
-          location: data.display_name 
+    fetch(
+      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latlng.lat}&lon=${latlng.lng}`
+    )
+      .then((res) => res.json())
+      .then((data) => {
+        setNewReport((prev) => ({
+          ...prev,
+          location: data.display_name,
         }));
       });
   };
 
   const handleMapClick = (latlng: { lat: number; lng: number }) => {
     setPosition([latlng.lat, latlng.lng]);
-    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latlng.lat}&lon=${latlng.lng}`)
-      .then(res => res.json())
-      .then(data => {
-        setNewReport(prev => ({ 
-          ...prev, 
-          location: data.display_name 
+    fetch(
+      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latlng.lat}&lon=${latlng.lng}`
+    )
+      .then((res) => res.json())
+      .then((data) => {
+        setNewReport((prev) => ({
+          ...prev,
+          location: data.display_name,
         }));
       });
   };
@@ -127,24 +147,24 @@ export default function ReportPage() {
   };
   const handleVerify = async () => {
     if (!file) return;
-  
-    setVerificationStatus('verifying');
-  
+
+    setVerificationStatus("verifying");
+
     try {
       const genAI = new GoogleGenerativeAI(geminiApiKey);
       const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-  
+
       const base64Data = await readFileAsBase64(file);
-  
+
       const imageParts = [
         {
           inlineData: {
-            data: base64Data.split(',')[1],
+            data: base64Data.split(",")[1],
             mimeType: file.type,
           },
         },
       ];
-  
+
       const prompt = `You are an expert in waste management and recycling. Analyze this image and provide:
         1. The type of waste (e.g., plastic, paper, glass, metal, organic)
         2. An estimate of the quantity or amount (in kg or liters)
@@ -156,47 +176,55 @@ export default function ReportPage() {
           "quantity": "estimated quantity with unit",
           "confidence": confidence level as a number between 0 and 1
         }`;
-  
+
       const result = await model.generateContent([prompt, ...imageParts]);
       const response = result.response;
-      
+
       if (response?.candidates?.[0]?.content?.parts?.[0]?.text) {
-        const jsonContent = response.candidates[0].content.parts[0].text.replace(/```json\n|\n```/g, '').trim();
-  
+        const jsonContent = response.candidates[0].content.parts[0].text
+          .replace(/```json\n|\n```/g, "")
+          .trim();
+
         try {
           const parsedResult = JSON.parse(jsonContent);
-  
-          if (parsedResult.wasteType && parsedResult.quantity && parsedResult.confidence !== undefined) {
+
+          if (
+            parsedResult.wasteType &&
+            parsedResult.quantity &&
+            parsedResult.confidence !== undefined
+          ) {
             setVerificationResult(parsedResult);
-            setVerificationStatus('success');
-            setNewReport(prev => ({
+            setVerificationStatus("success");
+            setNewReport((prev) => ({
               ...prev,
               type: parsedResult.wasteType,
               amount: parsedResult.quantity,
             }));
           } else {
-            setVerificationStatus('failure');
+            setVerificationStatus("failure");
           }
         } catch (parseError) {
-          console.error('Failed to parse JSON response:', parseError);
-          setVerificationStatus('failure');
+          console.error("Failed to parse JSON response:", parseError);
+          setVerificationStatus("failure");
         }
       } else {
-        setVerificationStatus('failure');
+        setVerificationStatus("failure");
       }
     } catch (error) {
-      console.error('Error verifying waste:', error);
-      setVerificationStatus('failure');
+      console.error("Error verifying waste:", error);
+      setVerificationStatus("failure");
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (verificationStatus !== 'success' || !user || !position) {
-      toast.error('Please verify the waste and select a location before submitting.');
+    if (verificationStatus !== "success" || !user || !position) {
+      toast.error(
+        "Please verify the waste and select a location before submitting."
+      );
       return;
     }
-    
+
     setIsSubmitting(true);
     try {
       const report = await createReport(
@@ -205,30 +233,34 @@ export default function ReportPage() {
         newReport.type,
         newReport.amount,
         preview ?? undefined,
-        'report',
+        "report",
         verificationResult ? JSON.stringify(verificationResult) : undefined
       );
 
       const formattedReport = {
         id: report?.id ?? 0,
-        location: report?.location ?? '',
-        wasteType: report?.wasteType ?? '',
-        amount: report?.amount ?? '',
-        createdAt: report ? new Date(report.createdAt).toISOString().split('T')[0] : ''
+        location: report?.location ?? "",
+        wasteType: report?.wasteType ?? "",
+        amount: report?.amount ?? "",
+        createdAt: report
+          ? new Date(report.createdAt).toISOString().split("T")[0]
+          : "",
       };
-      
+
       setReports([formattedReport, ...reports]);
-      setNewReport({ location: '', type: '', amount: '' });
+      setNewReport({ location: "", type: "", amount: "" });
       setFile(null);
       setPreview(null);
-      setVerificationStatus('idle');
+      setVerificationStatus("idle");
       setVerificationResult(null);
       setPosition(null);
-      
-      toast.success(`Report submitted successfully! You've earned points for reporting waste.`);
+
+      toast.success(
+        `Report submitted successfully! You've earned points for reporting waste.`
+      );
     } catch (error) {
-      console.error('Error submitting report:', error);
-      toast.error('Failed to submit report. Please try again.');
+      console.error("Error submitting report:", error);
+      toast.error("Failed to submit report. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -236,25 +268,25 @@ export default function ReportPage() {
 
   useEffect(() => {
     const checkUser = async () => {
-      const email = localStorage.getItem('userEmail');
+      const email = localStorage.getItem("userEmail");
       if (email) {
         let user = await getUserByEmail(email);
         if (!user) {
-          user = await createUser(email, 'Anonymous User');
+          user = await createUser(email, "Anonymous User");
         }
         setUser(user);
-        
+
         const recentReports = await getRecentReports();
-        const formattedReports = recentReports.map(report => ({
+        const formattedReports = recentReports.map((report) => ({
           id: report.id,
           location: report.location,
           wasteType: report.wasteType,
           amount: report.amount,
-          createdAt: new Date(report.createdAt).toISOString().split('T')[0]
+          createdAt: new Date(report.createdAt).toISOString().split("T")[0],
         }));
         setReports(formattedReports);
       } else {
-        router.push('/login'); 
+        router.push("/login");
       }
     };
     checkUser();
@@ -262,11 +294,19 @@ export default function ReportPage() {
 
   return (
     <div className="p-8 max-w-4xl mx-auto">
-      <h1 className="text-3xl font-semibold mb-6 text-gray-800">Report waste</h1>
-      
-      <form onSubmit={handleSubmit} className="bg-white p-8 rounded-2xl shadow-lg mb-12">
+      <h1 className="text-3xl font-semibold mb-6 text-gray-800">
+        Report waste
+      </h1>
+
+      <form
+        onSubmit={handleSubmit}
+        className="bg-white p-8 rounded-2xl shadow-lg mb-12"
+      >
         <div className="mb-8">
-          <label htmlFor="waste-image" className="block text-lg font-medium text-gray-700 mb-2">
+          <label
+            htmlFor="waste-image"
+            className="block text-lg font-medium text-gray-700 mb-2"
+          >
             Upload Waste Image
           </label>
           <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-xl hover:border-green-500 transition-colors duration-300">
@@ -278,7 +318,14 @@ export default function ReportPage() {
                   className="relative cursor-pointer bg-white rounded-md font-medium text-green-600 hover:text-green-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-green-500"
                 >
                   <span>Upload a file</span>
-                  <input id="waste-image" name="waste-image" type="file" className="sr-only" onChange={handleFileChange} accept="image/*" />
+                  <input
+                    id="waste-image"
+                    name="waste-image"
+                    type="file"
+                    className="sr-only"
+                    onChange={handleFileChange}
+                    accept="image/*"
+                  />
                 </label>
                 <p className="pl-1">or drag and drop</p>
               </div>
@@ -286,48 +333,61 @@ export default function ReportPage() {
             </div>
           </div>
         </div>
-        
+
         {preview && (
           <div className="mt-4 mb-8">
-            <img src={preview} alt="Waste preview" className="max-w-full h-auto rounded-xl shadow-md" />
+            <img
+              src={preview}
+              alt="Waste preview"
+              className="max-w-full h-auto rounded-xl shadow-md"
+            />
           </div>
         )}
-        
-        <Button 
-          type="button" 
-          onClick={handleVerify} 
-          className="w-full mb-8 bg-blue-600 hover:bg-blue-700 text-white py-3 text-lg rounded-xl transition-colors duration-300" 
-          disabled={!file || verificationStatus === 'verifying'}
+
+        <Button
+          type="button"
+          onClick={handleVerify}
+          className="w-full mb-8 bg-[#047857] hover:bg-[#036548] text-white py-3 text-lg rounded-xl transition-colors duration-300"
+          disabled={!file || verificationStatus === "verifying"}
         >
-          {verificationStatus === 'verifying' ? (
+          {verificationStatus === "verifying" ? (
             <>
               <Loader className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" />
               Verifying...
             </>
-          ) : 'Verify Waste'}
+          ) : (
+            "Verify Waste"
+          )}
         </Button>
 
-        {verificationStatus === 'success' && verificationResult && (
+        {verificationStatus === "success" && verificationResult && (
           <div className="bg-green-50 border-l-4 border-green-400 p-4 mb-8 rounded-r-xl">
             <div className="flex items-center">
               <CheckCircle className="h-6 w-6 text-green-400 mr-3" />
               <div>
-                <h3 className="text-lg font-medium text-green-800">Verification Successful</h3>
+                <h3 className="text-lg font-medium text-green-800">
+                  Verification Successful
+                </h3>
                 <div className="mt-2 text-sm text-green-700">
                   <p>Waste Type: {verificationResult.wasteType}</p>
                   <p>Quantity: {verificationResult.quantity}</p>
-                  <p>Confidence: {(verificationResult.confidence * 100).toFixed(2)}%</p>
+                  <p>
+                    Confidence:{" "}
+                    {(verificationResult.confidence * 100).toFixed(2)}%
+                  </p>
                 </div>
               </div>
             </div>
           </div>
         )}
 
-        {/* Map Section */}
         <div className="mb-8">
           <div className="flex gap-4 mb-4">
             <div className="flex-1">
-              <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="location"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Location
               </label>
               <div className="flex gap-2">
@@ -336,41 +396,55 @@ export default function ReportPage() {
                   id="location"
                   name="location"
                   value={newReport.location}
-                  onChange={(e) => setNewReport(prev => ({ ...prev, location: e.target.value }))}
+                  onChange={(e) =>
+                    setNewReport((prev) => ({
+                      ...prev,
+                      location: e.target.value,
+                    }))
+                  }
                   className="flex-1 px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500"
                   placeholder="Enter location"
                 />
-                <Button 
-                  type="button" 
+                <Button
+                  type="button"
                   onClick={handleLocationSearch}
-                  className="bg-blue-600 hover:bg-blue-700"
+                  className="bg-[#047857] hover:bg-[#036548] text-white px-4 py-2 rounded-lg"
                 >
                   Search
                 </Button>
+
                 <Button
                   type="button"
                   onClick={handleCurrentLocation}
-                  className="bg-green-600 hover:bg-green-700"
+                  className="bg-[#047857] hover:bg-[#036548]"
                 >
                   <Navigation className="h-5 w-5" />
                 </Button>
               </div>
             </div>
           </div>
-          
-          <div className="h-96 rounded-xl overflow-hidden border border-gray-300">
-            <MapComponent
-              position={position}
-              onLocationFound={handleLocationFound}
-              onMapClick={handleMapClick}
-              mapRef={mapRef}
-            />
+
+          {/* Add a wrapper div for the map */}
+          <div className="relative">
+            <div className="sticky top-20 h-96 rounded-xl overflow-hidden border border-gray-300">
+              <MapComponent
+                position={position}
+                onLocationFound={handleLocationFound}
+                onMapClick={handleMapClick}
+                mapRef={mapRef}
+              />
+            </div>
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
           <div>
-            <label htmlFor="type" className="block text-sm font-medium text-gray-700 mb-1">Waste Type</label>
+            <label
+              htmlFor="type"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
+              Waste Type
+            </label>
             <input
               type="text"
               id="type"
@@ -382,7 +456,12 @@ export default function ReportPage() {
             />
           </div>
           <div>
-            <label htmlFor="amount" className="block text-sm font-medium text-gray-700 mb-1">Estimated Amount</label>
+            <label
+              htmlFor="amount"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
+              Estimated Amount
+            </label>
             <input
               type="text"
               id="amount"
@@ -395,42 +474,65 @@ export default function ReportPage() {
           </div>
         </div>
 
-        <Button 
-          type="submit" 
+        <Button
+          type="submit"
           className="w-full bg-green-600 hover:bg-green-700 text-white py-3 text-lg rounded-xl transition-colors duration-300 flex items-center justify-center"
-          disabled={isSubmitting || !position || verificationStatus !== 'success'}
+          disabled={
+            isSubmitting || !position || verificationStatus !== "success"
+          }
         >
           {isSubmitting ? (
             <>
               <Loader className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" />
               Submitting...
             </>
-          ) : 'Submit Report'}
+          ) : (
+            "Submit Report"
+          )}
         </Button>
       </form>
 
-      <h2 className="text-3xl font-semibold mb-6 text-gray-800">Recent Reports</h2>
+      <h2 className="text-3xl font-semibold mb-6 text-gray-800">
+        Recent Reports
+      </h2>
       <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
         <div className="max-h-96 overflow-y-auto">
           <table className="w-full">
             <thead className="bg-gray-50 sticky top-0">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Location
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Type
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Amount
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Date
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
               {reports.map((report) => (
-                <tr key={report.id} className="hover:bg-gray-50 transition-colors duration-200">
+                <tr
+                  key={report.id}
+                  className="hover:bg-gray-50 transition-colors duration-200"
+                >
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     <MapPin className="inline-block w-4 h-4 mr-2 text-green-500" />
                     {report.location}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{report.wasteType}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{report.amount}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{report.createdAt}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {report.wasteType}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {report.amount}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {report.createdAt}
+                  </td>
                 </tr>
               ))}
             </tbody>

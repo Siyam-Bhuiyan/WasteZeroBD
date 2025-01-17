@@ -50,7 +50,7 @@ export const Banner = () => {
 
   return (
     <section
-      className="banner bg-gray-100 flex items-center justify-center h-[60vh] w-[70vw] mx-auto rounded-lg shadow-lg"
+      className="banner bg-white flex items-center justify-center h-[60vh] w-[70vw] mx-auto rounded-lg shadow-lg"
       id="home"
     >
       <div className="w-full px-10 flex flex-col lg:flex-row items-center gap-16">

@@ -8,7 +8,11 @@ import Script from "next/script";
 import "./globals.css";
 import { Toaster } from "react-hot-toast";
 
-export default function UserLayout({ children }: { children: React.ReactNode }) {
+export default function UserLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const pathname = usePathname();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
@@ -22,16 +26,24 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <head>
-        <Script src="https://upload-widget.cloudinary.com/global/all.js" strategy="beforeInteractive" />
+        <Script
+          src="https://upload-widget.cloudinary.com/global/all.js"
+          strategy="beforeInteractive"
+        />
       </head>
-      <body className="flex">
+      <body className="flex min-h-screen bg-[#ecfdf5]">
         {/* Sidebar */}
-        {shouldShowSidebar && <Sidebar isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />}
+        {shouldShowSidebar && (
+          <Sidebar
+            isSidebarOpen={isSidebarOpen}
+            toggleSidebar={toggleSidebar}
+          />
+        )}
 
         {/* Main Content */}
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col min-h-screen">
           <Header onMenuClick={toggleSidebar} totalEarnings={0} />
-          <main className="flex-1 p-4 lg:p-8">{children}</main>
+          <main className="flex-1 p-4 lg:p-8 overflow-auto">{children}</main>
         </div>
 
         <Toaster />

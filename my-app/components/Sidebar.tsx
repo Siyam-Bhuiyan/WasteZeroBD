@@ -6,9 +6,9 @@ import {
   Coins,
   Medal,
   Settings,
-  Home,
   Recycle,
   ShoppingBag, // Icon for Waste Marketplace
+  Home,
   Trophy, // Icon for Certificate
 } from "lucide-react"; // Updated Icons
 
@@ -18,11 +18,7 @@ const sidebarItems = [
   { href: "/user/collect", icon: Trash, label: "Collect Waste" },
   { href: "/user/rewards", icon: Coins, label: "Rewards" },
   { href: "/user/leaderboard", icon: Medal, label: "Leaderboard" },
-  {
-    href: "/user/market",
-    icon: ShoppingBag, // New Icon for Waste Marketplace
-    label: "Waste Marketplace",
-  },
+
   {
     href: "/user/recycling-recommendations",
     icon: Recycle,
@@ -32,6 +28,16 @@ const sidebarItems = [
     href: "/user/certificate/questions",
     icon: Trophy, // New Icon for Certificate
     label: "Certificate",
+  },
+  {
+    href: "/user/residential",
+    icon: Home, // New Icon for Waste Marketplace
+    label: "Residential Service",
+  },
+  {
+    href: "/user/market",
+    icon: ShoppingBag, // New Icon for Waste Marketplace
+    label: "Waste Marketplace",
   },
 ];
 
