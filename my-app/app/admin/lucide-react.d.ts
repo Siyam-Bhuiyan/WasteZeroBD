@@ -39,5 +39,7 @@ declare module "lucide-react" {
   export const Phone: React.FC<React.SVGProps<SVGSVGElement>>;
   export const Info: React.FC<React.SVGProps<SVGSVGElement>>;
   export const AlertCircle: React.FC<React.SVGProps<SVGSVGElement>>;
+  export const Loader: React.FC<React.SVGProps<SVGSVGElement>>;
+  export const Sparkles: React.FC<React.SVGProps<SVGSVGElement>>;
 }
 

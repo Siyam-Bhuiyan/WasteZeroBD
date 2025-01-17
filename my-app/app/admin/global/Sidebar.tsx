@@ -143,7 +143,7 @@ const SidebarComponent = () => {
               Calendar
             </MenuItem>
             <MenuItem
-              icon={<HelpOutlineOutlinedIcon />}
+              icon={<HomeOutlinedIcon />}
               component="a"
               href="/admin/residential"
             >

@@ -22,7 +22,7 @@ import { Badge } from "@/components/ui/badge";
 import { Web3Auth } from "@web3auth/modal";
 import { CHAIN_NAMESPACES, IProvider, WEB3AUTH_NETWORK } from "@web3auth/base";
 import { EthereumPrivateKeyProvider } from "@web3auth/ethereum-provider";
-import { toast} from "react-hot-toast";
+import { toast } from "react-hot-toast";
 
 const clientID =
   "BFpR6wWj7Qdf9y1Gjyca6XcSBzhpYZ4fk5LiGiurjFmKg5UovV5rl3yii41-0C0Xb8Ur-zlbmT6h1H9tzXMu6Dc";
@@ -63,28 +63,43 @@ export default function Header({ onMenuClick, totalEarnings }: HeaderProps) {
     const initWeb3Auth = async () => {
       try {
         await web3auth.initModal();
-
+        localStorage.removeItem("userId")
         if (web3auth.connected) {
           const user = await web3auth.getUserInfo();
+
           console.log(user.email)
+          let userId;
+
           if (user.email) {
             const isBanned = await checkBanStatus(user.email);
+            
             if (isBanned) {
               toast.error("You have been banned! Contact Admin for further assistance.");
               throw new Error("Banned user.");
             }
+
+            userId = await fetchUserId(user.email);
+            if (!userId) {
+              throw new Error("User ID not found for the given email.");
+            }
+            console.log("Fetched userId:", userId);
+            if (!userId) {
+              throw new Error("User ID not found for the given email.");
+            }
+  
+            setProvider(web3auth.provider);
+            setLoggedIn(true);
+            setUserInfo(user);
+  
+            // Store in localStorage
+            localStorage.setItem("userEmail", user.email);
+            localStorage.setItem("userId", userId);
           }
 
-          const userId = await fetchUserId(user.email);
-        if (!userId) {
-          throw new Error("User ID not found for the given email.");
-        }
 
-          setProvider(web3auth.provider);
-          setLoggedIn(true);
-          setUserInfo(user);
-          localStorage.setItem("userEmail", user.email);
-          localStorage.setItem("userId", user.id);
+
+
+
         }
       } catch (error: any) {
         toast.error(error.message || "Failed to initialize Web3Auth.");
@@ -98,25 +113,27 @@ export default function Header({ onMenuClick, totalEarnings }: HeaderProps) {
     try {
       const web3AuthProvider = await web3auth.connect();
       const user = await web3auth.getUserInfo();
+      localStorage.removeItem("userId")
+      let userId;
 
       if (user.email) {
         const isBanned = await checkBanStatus(user.email);
-        if (isBanned) {
-          toast.error("You have been banned! Contact Admin for further assistance.");
-          throw new Error("Banned user.");
-        }
-      }
-
-      const userId = await fetchUserId(user.email);
+        userId = await fetchUserId(user.email);
         if (!userId) {
           throw new Error("User ID not found for the given email.");
         }
 
-      setProvider(web3AuthProvider);
-      setLoggedIn(true);
-      setUserInfo(user);
-      localStorage.setItem("userEmail", user.email);
-      localStorage.setItem("userId", user.id);
+        if (isBanned) {
+          toast.error("You have been banned! Contact Admin for further assistance.");
+          throw new Error("Banned user.");
+        }
+
+        setProvider(web3auth.provider);
+        setLoggedIn(true);
+        setUserInfo(user);
+        localStorage.setItem("userEmail", user.email);
+        localStorage.setItem("userId", userId);
+      }
     } catch (error: any) {
       toast.error(error.message || "Login failed.");
     }
@@ -129,6 +146,7 @@ export default function Header({ onMenuClick, totalEarnings }: HeaderProps) {
       setLoggedIn(false);
       setUserInfo(null);
       localStorage.removeItem("userEmail");
+      localStorage.removeItem("userId")
       toast.success("Logged out successfully.");
     } catch (error) {
       toast.error("Logout failed.");
@@ -156,25 +174,25 @@ export default function Header({ onMenuClick, totalEarnings }: HeaderProps) {
   const fetchUserId = async (email: string): Promise<string | null> => {
     try {
       console.log("Fetching user ID for email:", email); // Debug
-  
+
       const response = await fetch(`/user/api/fetchUserByEmail?email=${encodeURIComponent(email)}`, {
         method: "GET", // Change to GET
       });
-  
+
       if (!response.ok) {
         throw new Error(`Failed to fetch user ID: ${response.statusText}`);
       }
-  
+
       const data = await response.json();
       console.log("User ID fetch response:", data); // Debug
-  
+
       return data.userId || null;
     } catch (err: any) {
       console.error("Error fetching user ID:", err.message);
       return null;
     }
   };
-  
+
   return (
     <header className="bg-black text-white border-b border-gray-800 sticky top-0 z-50 shadow-md">
       {/* <Toaster position="top-right" reverseOrder={false} /> */}
