@@ -1,11 +1,22 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { Upload, Loader, CheckCircle, Download, Camera, History, Trash2, Recycle, Info, Star } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { useState, useEffect } from "react";
+import {
+  Upload,
+  Loader,
+  CheckCircle,
+  Download,
+  Camera,
+  History,
+  Trash2,
+  Recycle,
+  Info,
+  Star,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { jsPDF } from 'jspdf';
-import { toast } from 'react-hot-toast';
+import { jsPDF } from "jspdf";
+import { toast } from "react-hot-toast";
 import {
   Card,
   CardContent,
@@ -19,14 +30,9 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-const geminiApiKey = 'AIzaSyBQ-KCx7JC2ksgGCEIKosnfDNqzl6qgf2w';
+const geminiApiKey = "AIzaSyBQ-KCx7JC2ksgGCEIKosnfDNqzl6qgf2w";
 
 interface RecyclingRecommendation {
   method: string;
@@ -45,25 +51,26 @@ export default function RecyclingRecommendationsPage() {
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [recommendation, setRecommendation] = useState<RecyclingRecommendation | null>(null);
+  const [recommendation, setRecommendation] =
+    useState<RecyclingRecommendation | null>(null);
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [showHistory, setShowHistory] = useState(false);
 
   useEffect(() => {
     // Embed Chatbot
-    const scriptConfig = document.createElement('script');
+    const scriptConfig = document.createElement("script");
     scriptConfig.innerHTML = `
       window.embeddedChatbotConfig = {
-        chatbotId: "gDh87aj3I6hMuqiZZwjRH",
+        chatbotId: "maw4twKpL7_AByPJXHFaJ",
         domain: "www.chatbase.co"
       };
     `;
     document.body.appendChild(scriptConfig);
 
-    const scriptEmbed = document.createElement('script');
-    scriptEmbed.src = 'https://www.chatbase.co/embed.min.js';
-    scriptEmbed.setAttribute('chatbotId', 'gDh87aj3I6hMuqiZZwjRH');
-    scriptEmbed.setAttribute('domain', 'www.chatbase.co');
+    const scriptEmbed = document.createElement("script");
+    scriptEmbed.src = "https://www.chatbase.co/embed.min.js";
+    scriptEmbed.setAttribute("chatbotId", "maw4twKpL7_AByPJXHFaJ");
+    scriptEmbed.setAttribute("domain", "www.chatbase.co");
     scriptEmbed.defer = true;
     document.body.appendChild(scriptEmbed);
 
@@ -86,34 +93,34 @@ export default function RecyclingRecommendationsPage() {
     }
   };
 
-  
-
-
-
   const captureImage = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-      const video = document.createElement('video');
-      const canvas = document.createElement('canvas');
-      
+      const video = document.createElement("video");
+      const canvas = document.createElement("canvas");
+
       video.srcObject = stream;
       await video.play();
-      
+
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
-      canvas.getContext('2d')?.drawImage(video, 0, 0);
-      
-      const blob = await new Promise<Blob>((resolve) => canvas.toBlob(blob => resolve(blob!)));
-      const capturedFile = new File([blob], 'captured-image.jpg', { type: 'image/jpeg' });
-      
+      canvas.getContext("2d")?.drawImage(video, 0, 0);
+
+      const blob = await new Promise<Blob>((resolve) =>
+        canvas.toBlob((blob) => resolve(blob!))
+      );
+      const capturedFile = new File([blob], "captured-image.jpg", {
+        type: "image/jpeg",
+      });
+
       setFile(capturedFile);
-      setPreview(canvas.toDataURL('image/jpeg'));
-      
-      stream.getTracks().forEach(track => track.stop());
-      toast.success('Image captured successfully!');
+      setPreview(canvas.toDataURL("image/jpeg"));
+
+      stream.getTracks().forEach((track) => track.stop());
+      toast.success("Image captured successfully!");
     } catch (error) {
-      console.error('Error capturing image:', error);
-      toast.error('Failed to capture image. Please try uploading instead.');
+      console.error("Error capturing image:", error);
+      toast.error("Failed to capture image. Please try uploading instead.");
     }
   };
 
@@ -128,7 +135,7 @@ export default function RecyclingRecommendationsPage() {
 
   const generateRecommendation = async () => {
     if (!file) {
-      toast.error('Please upload or capture a waste image first.');
+      toast.error("Please upload or capture a waste image first.");
       return;
     }
 
@@ -139,12 +146,14 @@ export default function RecyclingRecommendationsPage() {
 
       const base64Data = await readFileAsBase64(file);
 
-      const imageParts = [{
-        inlineData: {
-          data: base64Data.split(',')[1],
-          mimeType: file.type,
+      const imageParts = [
+        {
+          inlineData: {
+            data: base64Data.split(",")[1],
+            mimeType: file.type,
+          },
         },
-      }];
+      ];
 
       const prompt = `You are an expert in waste management and recycling. Analyze this image and provide detailed recycling recommendations:
 
@@ -163,27 +172,32 @@ Respond in JSON format like this:
 
       const result = await model.generateContent([prompt, ...imageParts]);
       const response = result.response;
-      
+
       if (response?.candidates?.[0]?.content?.parts?.[0]?.text) {
-        const jsonContent = response.candidates[0].content.parts[0].text.replace(/```json\n|\n```/g, '').trim();
-        
+        const jsonContent = response.candidates[0].content.parts[0].text
+          .replace(/```json\n|\n```/g, "")
+          .trim();
+
         try {
           const parsedResult = JSON.parse(jsonContent);
           setRecommendation(parsedResult);
-          setHistory(prev => [...prev, {
-            timestamp: new Date(),
-            recommendation: parsedResult,
-            imageUrl: preview!
-          }]);
-          toast.success('Recycling recommendations generated successfully!');
+          setHistory((prev) => [
+            ...prev,
+            {
+              timestamp: new Date(),
+              recommendation: parsedResult,
+              imageUrl: preview!,
+            },
+          ]);
+          toast.success("Recycling recommendations generated successfully!");
         } catch (parseError) {
-          console.error('Failed to parse AI response:', parseError);
-          toast.error('Failed to process recommendations. Please try again.');
+          console.error("Failed to parse AI response:", parseError);
+          toast.error("Failed to process recommendations. Please try again.");
         }
       }
     } catch (error) {
-      console.error('Error generating recommendations:', error);
-      toast.error('Failed to generate recommendations. Please try again.');
+      console.error("Error generating recommendations:", error);
+      toast.error("Failed to generate recommendations. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -191,7 +205,7 @@ Respond in JSON format like this:
 
   const downloadPDF = () => {
     if (!recommendation) {
-      toast.error('No recommendations to download.');
+      toast.error("No recommendations to download.");
       return;
     }
 
@@ -200,61 +214,71 @@ Respond in JSON format like this:
       let yPosition = 20;
       const pageWidth = doc.internal.pageSize.getWidth();
       const margin = 20;
-      const contentWidth = pageWidth - (2 * margin);
+      const contentWidth = pageWidth - 2 * margin;
 
       // Helper function to add text with automatic page breaks
-      const addText = (text: string, fontSize: number, isBold: boolean = false) => {
+      const addText = (
+        text: string,
+        fontSize: number,
+        isBold: boolean = false
+      ) => {
         doc.setFontSize(fontSize);
-        doc.setFont(undefined, isBold ? 'bold' : 'normal');
-        
+        doc.setFont(undefined, isBold ? "bold" : "normal");
+
         const lines = doc.splitTextToSize(text, contentWidth);
-        
+
         // Check if we need a new page
-        if (yPosition + (lines.length * (fontSize * 0.5)) > doc.internal.pageSize.getHeight() - margin) {
+        if (
+          yPosition + lines.length * (fontSize * 0.5) >
+          doc.internal.pageSize.getHeight() - margin
+        ) {
           doc.addPage();
           yPosition = margin;
         }
-        
+
         doc.text(lines, margin, yPosition);
         yPosition += lines.length * (fontSize * 0.5) + 10;
       };
 
       // Title
       doc.setTextColor(0, 100, 0);
-      addText('Recycling Recommendations Report', 24, true);
-      
+      addText("Recycling Recommendations Report", 24, true);
+
       // Date
       doc.setTextColor(100, 100, 100);
       addText(`Generated on: ${new Date().toLocaleDateString()}`, 12);
-      
+
       // Content sections
       doc.setTextColor(0, 0, 0);
-      
+
       // Add preview image if available
       if (preview) {
         const imgWidth = 160;
         const imgHeight = 100;
-        
-        if (yPosition + imgHeight > doc.internal.pageSize.getHeight() - margin) {
+
+        if (
+          yPosition + imgHeight >
+          doc.internal.pageSize.getHeight() - margin
+        ) {
           doc.addPage();
           yPosition = margin;
         }
-        
-        doc.addImage(preview, 'JPEG', margin, yPosition, imgWidth, imgHeight);
+
+        doc.addImage(preview, "JPEG", margin, yPosition, imgWidth, imgHeight);
         yPosition += imgHeight + 20;
       }
 
       // Sections
-      addText('Recycling Method:', 16, true);
+      addText("Recycling Method:", 16, true);
       addText(recommendation.method, 12);
 
-      addText('Recommended Facilities:', 16, true);
+      addText("Recommended Facilities:", 16, true);
       addText(recommendation.facilities, 12);
 
-      addText('Environmental Impact:', 16, true);
+      addText("Environmental Impact:", 16, true);
       addText(recommendation.environmentalImpact, 12);
 
-      addText('Practical Recommendations:', 16, true);
+      addText("Practical Recommendations:", 16, true);
       addText(recommendation.recommendations, 12);
 
       // Footer
@@ -267,15 +291,15 @@ Respond in JSON format like this:
           `Page ${i} of ${pageCount}`,
           doc.internal.pageSize.getWidth() / 2,
           doc.internal.pageSize.getHeight() - 10,
-          { align: 'center' }
+          { align: "center" }
         );
       }
 
-      doc.save('recycling_recommendations.pdf');
-      toast.success('PDF report downloaded successfully!');
+      doc.save("recycling_recommendations.pdf");
+      toast.success("PDF report downloaded successfully!");
     } catch (error) {
-      console.error('Error generating PDF:', error);
-      toast.error('Failed to generate PDF. Please try again.');
+      console.error("Error generating PDF:", error);
+      toast.error("Failed to generate PDF. Please try again.");
     }
   };
 
@@ -283,7 +307,7 @@ Respond in JSON format like this:
     setFile(null);
     setPreview(null);
     setRecommendation(null);
-    toast.success('All data cleared successfully!');
+    toast.success("All data cleared successfully!");
   };
 
   return (
@@ -298,7 +322,7 @@ Respond in JSON format like this:
               Get expert recycling recommendations for your waste materials
             </CardDescription>
           </CardHeader>
-          
+
           <CardContent className="space-y-6">
             <div className="flex gap-4 mb-6">
               <TooltipProvider>
@@ -310,7 +334,7 @@ Respond in JSON format like this:
                       className="w-full"
                     >
                       <History className="mr-2 h-5 w-5" />
-                      {showHistory ? 'Hide History' : 'Show History'}
+                      {showHistory ? "Hide History" : "Show History"}
                     </Button>
                   </TooltipTrigger>
                 </Tooltip>
@@ -395,7 +419,7 @@ Respond in JSON format like this:
                   Analyzing Waste...
                 </div>
               ) : (
-                'Get Recommendations'
+                "Get Recommendations"
               )}
             </Button>
 
@@ -409,14 +433,17 @@ Respond in JSON format like this:
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {Object.entries(recommendation).map(([key, value]) => (
-                    <div key={key} className="p-4 bg-white rounded-lg shadow-sm">
+                    <div
+                      key={key}
+                      className="p-4 bg-white rounded-lg shadow-sm"
+                    >
                       <h4 className="font-semibold text-green-700 capitalize mb-2">
-                        {key.replace(/([A-Z])/g, ' $1').trim()}
+                        {key.replace(/([A-Z])/g, " $1").trim()}
                       </h4>
                       <p className="text-gray-600">{value}</p>
                     </div>
                   ))}
-                  
+
                   <Button
                     onClick={downloadPDF}
                     className="w-full mt-4 bg-green-600 hover:bg-green-700"
@@ -437,29 +464,35 @@ Respond in JSON format like this:
                   {history.map((item, index) => (
                     <div key={index} className="p-4 border rounded-lg">
                       <div className="flex items-center gap-4 mb-4">
-                      <img 
-                          src={item.imageUrl} 
-                          alt="Historical waste" 
+                        <img
+                          src={item.imageUrl}
+                          alt="Historical waste"
                           className="w-24 h-24 object-cover rounded-lg"
                         />
                         <div>
                           <p className="text-sm text-gray-500">
-                            {item.timestamp.toLocaleDateString()} at{' '}
+                            {item.timestamp.toLocaleDateString()} at{" "}
                             {item.timestamp.toLocaleTimeString()}
                           </p>
                         </div>
                       </div>
                       <div className="grid grid-cols-2 gap-4">
-                        {Object.entries(item.recommendation).map(([key, value]) => (
-                          <div key={key} className="p-3 bg-gray-50 rounded-lg">
-                            <h5 className="font-medium text-gray-700 capitalize mb-1">
-                              {key.replace(/([A-Z])/g, ' $1').trim()}
-                            </h5>
-                            <p className="text-sm text-gray-600 line-clamp-2">{value}</p>
-                          </div>
-                        ))}
+                        {Object.entries(item.recommendation).map(
+                          ([key, value]) => (
+                            <div
+                              key={key}
+                              className="p-3 bg-gray-50 rounded-lg"
+                            >
+                              <h5 className="font-medium text-gray-700 capitalize mb-1">
+                                {key.replace(/([A-Z])/g, " $1").trim()}
+                              </h5>
+                              <p className="text-sm text-gray-600 line-clamp-2">
+                                {value}
+                              </p>
+                            </div>
+                          )
+                        )}
                       </div>
-                      
                     </div>
                   ))}
                 </CardContent>
