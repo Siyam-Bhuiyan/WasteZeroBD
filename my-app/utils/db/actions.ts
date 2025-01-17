@@ -834,3 +834,320 @@ export async function getUserRequests(userId: number) {
     .execute();
   return services;
 }
+
+
+//for buy and sell
+
+// utils/db/actions.ts
+import { WasteListings, MarketplaceOrders, Cart } from './schema';
+
+export type WasteListing = typeof WasteListings.$inferSelect;
+export type CartItem = typeof Cart.$inferSelect;
+export type MarketplaceOrder = typeof MarketplaceOrders.$inferSelect;
+
+export async function getWasteListings(filter?: { 
+  category?: string; 
+  searchTerm?: string;
+  userId?: number;
+}) {
+  try {
+    console.log("Fetching waste listings...");
+    let query = db.select().from(WasteListings).leftJoin(Users, eq(WasteListings.userId, Users.id));
+
+    // Filter by status
+    query = query.where(eq(WasteListings.status, "available"));
+
+    // Filter by category if provided
+    if (filter?.category && filter.category !== "all") {
+      query = query.where(eq(WasteListings.wasteType, filter.category));
+    }
+
+    // Filter by search term if provided
+    if (filter?.searchTerm) {
+      query = query.where(
+        or(
+          like(WasteListings.title, `%${filter.searchTerm}%`),
+          like(WasteListings.description, `%${filter.searchTerm}%`)
+        )
+      );
+    }
+
+    // Filter by user if provided
+    if (filter?.userId) {
+      query = query.where(eq(WasteListings.userId, filter.userId));
+    }
+
+    const listings = await query.orderBy(desc(WasteListings.createdAt));
+    console.log("Listings fetched successfully:", listings);
+    return listings;
+  } catch (error) {
+    console.error("Error fetching waste listings:", error);
+    return [];
+  }
+}
+
+export async function createWasteListing(
+  userId: number,
+  title: string,
+  description: string,
+  location: string,
+  wasteType: string,
+  quantity: string,
+  price: number,
+ 
+) {
+  try {
+    const [listing] = await db
+      .insert(WasteListings)
+      .values({
+        userId,
+        title,
+        description,
+        location,
+        wasteType,
+        quantity,
+        price,
+        
+        status: 'available',
+        money: price.toString(),
+      })
+      .returning();
+    return listing;
+  } catch (error) {
+    console.error("Error creating waste listing:", error);
+    return null;
+  }
+}
+
+export async function updateWasteListing(
+  id: number,
+  userId: number,
+  updates: Partial<WasteListing>
+) {
+  try {
+    const [updated] = await db
+      .update(WasteListings)
+      .set(updates)
+      .where(
+        and(
+          eq(WasteListings.id, id),
+          eq(WasteListings.userId, userId)
+        )
+      )
+      .returning();
+    return updated;
+  } catch (error) {
+    console.error("Error updating waste listing:", error);
+    return null;
+  }
+}
+
+export async function deleteWasteListing(id: number, userId: number) {
+  try {
+    const [deleted] = await db
+      .delete(WasteListings)
+      .where(
+        and(
+          eq(WasteListings.id, id),
+          eq(WasteListings.userId, userId)
+        )
+      )
+      .returning();
+    return deleted;
+  } catch (error) {
+    console.error("Error deleting waste listing:", error);
+    return null;
+  }
+}
+
+export async function getCartItems(userId: number) {
+  try {
+    const cartItems = await db
+      .select({
+        cart: Cart,
+        listing: WasteListings,
+        seller: Users,
+      })
+      .from(Cart)
+      .innerJoin(WasteListings, eq(Cart.listingId, WasteListings.id))
+      .innerJoin(Users, eq(WasteListings.userId, Users.id))
+      .where(eq(Cart.userId, userId));
+    return cartItems;
+  } catch (error) {
+    console.error("Error fetching cart items:", error);
+    return [];
+  }
+}
+
+export async function addToCart(userId: number, listingId: number, quantity: string) {
+  try {
+    // Check if item already exists in cart
+    const existingItem = await db
+      .select()
+      .from(Cart)
+      .where(
+        and(
+          eq(Cart.userId, userId),
+          eq(Cart.listingId, listingId)
+        )
+      )
+      .limit(1);
+
+    if (existingItem.length > 0) {
+      // Update quantity if item exists
+      const [updated] = await db
+        .update(Cart)
+        .set({ quantity })
+        .where(
+          and(
+            eq(Cart.userId, userId),
+            eq(Cart.listingId, listingId)
+          )
+        )
+        .returning();
+      return updated;
+    }
+
+    // Create new cart item if it doesn't exist
+    const [cartItem] = await db
+      .insert(Cart)
+      .values({
+        userId,
+        listingId,
+        quantity,
+      })
+      .returning();
+    return cartItem;
+  } catch (error) {
+    console.error("Error adding to cart:", error);
+    return null;
+  }
+}
+
+export async function removeFromCart(userId: number, listingId: number) {
+  try {
+    const [deleted] = await db
+      .delete(Cart)
+      .where(
+        and(
+          eq(Cart.userId, userId),
+          eq(Cart.listingId, listingId)
+        )
+      )
+      .returning();
+    return deleted;
+  } catch (error) {
+    console.error("Error removing from cart:", error);
+    return null;
+  }
+}
+
+export async function createOrder(
+  buyerId: number,
+  sellerId: number,
+  listingId: number,
+  quantity: string,
+  totalPrice: number
+) {
+  try {
+    // Start a transaction
+    return await db.transaction(async (tx) => {
+      // Create the order
+      const [order] = await tx
+        .insert(MarketplaceOrders)
+        .values({
+          buyerId,
+          sellerId,
+          listingId,
+          quantity,
+          totalPrice,
+          status: 'pending',
+        })
+        .returning();
+
+      // Update the listing status
+      await tx
+        .update(WasteListings)
+        .set({ status: 'sold' })
+        .where(eq(WasteListings.id, listingId));
+
+      // Remove the item from cart
+      await tx
+        .delete(Cart)
+        .where(
+          and(
+            eq(Cart.userId, buyerId),
+            eq(Cart.listingId, listingId)
+          )
+        );
+
+      return order;
+    });
+  } catch (error) {
+    console.error("Error creating order:", error);
+    return null;
+  }
+}
+
+export async function getMyOrders(userId: number, role: 'buyer' | 'seller') {
+  try {
+    const orders = await db
+      .select({
+        order: MarketplaceOrders,
+        listing: WasteListings,
+        buyer: Users,
+        seller: Users,
+      })
+      .from(MarketplaceOrders)
+      .innerJoin(WasteListings, eq(MarketplaceOrders.listingId, WasteListings.id))
+      .innerJoin(Users, eq(MarketplaceOrders.buyerId, Users.id))
+      .innerJoin(Users, eq(MarketplaceOrders.sellerId, Users.id))
+      .where(
+        role === 'buyer' 
+          ? eq(MarketplaceOrders.buyerId, userId)
+          : eq(MarketplaceOrders.sellerId, userId)
+      )
+      .orderBy(desc(MarketplaceOrders.createdAt));
+    return orders;
+  } catch (error) {
+    console.error("Error fetching orders:", error);
+    return [];
+  }
+}
+
+
+
+export async function handleSell(
+  userId: number,
+  title: string,
+  description: string,
+  location: string,
+  wasteType: string,
+  quantity: string,
+  price: number,
+  
+) {
+  try {
+    const [listing] = await db
+      .insert(WasteListings)
+      .values({
+        userId,
+        title,
+        description,
+        location,
+        wasteType,
+        quantity,
+        price,
+       
+        money: price.toString(),
+        status: "available", // Default status
+        verificationResult: {}, // Default empty JSON object for verification
+      })
+      .returning();
+
+    return listing;
+  } catch (error) {
+    console.error("Error creating waste listing:", error);
+    throw new Error("Failed to create listing");
+  }
+}

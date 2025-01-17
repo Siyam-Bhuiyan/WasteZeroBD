@@ -1,391 +1,275 @@
-//sell
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { ShoppingCart, Package, User, Search, Filter, Upload, Trash2, Edit2, MapPin } from 'lucide-react';
-import { createWasteListing, getUserByEmail } from '@/utils/db/actions';
-import { useRouter } from 'next/navigation';
-import { toast } from 'react-hot-toast';
-import { useSession } from 'next-auth/react';
+import { useState, useEffect } from "react";
+import Script from "next/script";
+import { toast } from "react-hot-toast";
 
 const SellWaste = () => {
-  const router = useRouter();
-  const [imageUrl, setImageUrl] = useState('');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('all');
-  const [isCloudinaryReady, setIsCloudinaryReady] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const { data: session } = useSession();
-
   const [formData, setFormData] = useState({
-    title: '',
-    category: 'plastic',
-    price: '',
-    quantity: '',
-    location: '',
-    description: ''
+    title: "",
+    description: "",
+    location: "",
+    wasteType: "plastic",
+    quantity: "",
+    price: "",
   });
 
-  const [myListings, setMyListings] = useState([
-    { 
-      id: 1, 
-      name: 'Mixed Plastic Waste', 
-      category: 'plastic', 
-      price: '200', 
-      quantity: '500 kg', 
-      location: 'Mumbai',
-      description: 'Clean sorted plastic waste',
-      status: 'active',
-      image: '/api/placeholder/300/200'
-    },
-    {
-      id: 2,
-      name: 'Scrap Metal Collection',
-      category: 'metal',
-      price: '350',
-      quantity: '750 kg',
-      location: 'Delhi',
-      description: 'Mixed metal scrap',
-      status: 'active',
-      image: '/api/placeholder/300/200'
-    }
-  ]);
+  const [uploadedFiles, setUploadedFiles] = useState<string[]>([]); // Holds Cloudinary URLs
+  const [status, setStatus] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
 
-  const categories = ['all', 'plastic', 'metal', 'paper', 'electronic', 'organic'];
-
-  // Initialize Cloudinary
   useEffect(() => {
-    const loadCloudinary = () => {
-      const script = document.createElement('script');
-      script.src = 'https://upload-widget.cloudinary.com/global/all.js';
-      script.async = true;
-      script.onload = () => setIsCloudinaryReady(true);
-      document.body.appendChild(script);
-    };
-    loadCloudinary();
+    if (typeof window !== "undefined") {
+      const storedUserId = localStorage.getItem("userId");
+      setUserId(storedUserId);
+    }
   }, []);
 
-  const openCloudinaryWidget = () => {
-    if (!isCloudinaryReady) {
-      toast.error('Image upload is still initializing. Please try again in a moment.');
-      return;
-    }
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
-    const widget = window.cloudinary.createUploadWidget(
-      {
-        cloudName: "dugx8scku",
-        uploadPreset: "okayish",
-        folder: "waste_management",
-        multiple: false,
-        sources: ['local', 'camera'],
-        resourceType: "image",
-      },
-      (error, result) => {
-        if (!error && result && result.event === "success") {
-          setImageUrl(result.info.secure_url);
-          toast.success('Image uploaded successfully!');
-        }
+  const openCloudinaryWidget = async () => {
+    try {
+      const response = await fetch("/user/api/generateSignature", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          folder: "residential_waste_management",
+          userId,
+          uploadPreset: "okayish",
+        }),
+      });
+
+      const { signature, timestamp } = await response.json();
+
+      if (!(window as any).cloudinary) {
+        alert("Cloudinary widget is not available");
+        return;
       }
-    );
-    widget.open();
+
+      const widget = (window as any).cloudinary.createUploadWidget(
+        {
+          cloudName: "dugx8scku",
+          uploadPreset: "okayish",
+          uploadSignature: signature,
+          uploadSignatureTimestamp: timestamp,
+          folder: "residential_waste_management",
+          apiKey: "858892213842935",
+          context: { custom: `userId=${userId}` },
+          resourceType: "image",
+        },
+        (error: any, result: any) => {
+          if (!error && result.event === "success") {
+            console.log("Upload successful:", result.info);
+            setUploadedFiles((prev) => [...prev, result.info.secure_url]);
+          } else if (error) {
+            console.error("Upload failed:", error);
+          }
+        }
+      );
+
+      widget.open();
+    } catch (error) {
+      console.error("Error opening Cloudinary widget:", error);
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!session) {
-      toast.error('Please sign in to create a listing');
+
+    if (
+      !formData.title ||
+      !formData.description ||
+      !formData.location ||
+      !formData.quantity ||
+      !formData.price ||
+      uploadedFiles.length === 0
+    ) {
+      setStatus("Please fill in all fields and upload an image.");
       return;
     }
 
-    const user = await getUserByEmail(session.user.email);
-    if (!user) {
-      toast.error('User not found');
-      return;
-    }
-
-    const listing = await createWasteListing(
-      user.id,
-      formData.title,
-      formData.description,
-      formData.location,
-      formData.category,
-      formData.quantity,
-      parseInt(formData.price),
-      imageUrl
-    );
-
-      setMyListings([newListing, ...myListings]);
-      
-if (listing) {
-      toast.success('Listing created successfully!');
-      setFormData({
-        title: '',
-        category: 'plastic',
-        price: '',
-        quantity: '',
-        location: '',
-        description: ''
+    try {
+      const response = await fetch("/user/api/market/sell", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...formData,
+          userId,
+          fileUrls: uploadedFiles, // Include uploaded files
+        }),
       });
-      setImageUrl('');
-      
-    } else {
-      toast.error('Failed to create listing');
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setStatus("Listing created successfully!");
+        toast.success("Listing created successfully!");
+        setFormData({
+          title: "",
+          description: "",
+          location: "",
+          wasteType: "plastic",
+          quantity: "",
+          price: "",
+        });
+        setUploadedFiles([]);
+      } else {
+        setStatus(`Error: ${data.error}`);
+      }
+    } catch (error) {
+      setStatus("Failed to create listing. Please try again later.");
     }
   };
 
-  const deleteListing = (id) => {
-    setMyListings(myListings.filter(listing => listing.id !== id));
-    toast.success('Listing deleted successfully');
+  const removeImage = (indexToRemove: number) => {
+    setUploadedFiles((files) =>
+      files.filter((_, index) => index !== indexToRemove)
+    );
   };
-
-  const filteredListings = myListings.filter(listing => 
-    (selectedCategory === 'all' || listing.category === selectedCategory) &&
-    listing.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Navigation Bar */}
-      <nav className="bg-gradient-to-r from-green-600 to-green-800 text-white shadow-lg">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <h1 className="text-2xl font-bold">EcoTrade Market</h1>
-              <span className="ml-2 text-sm bg-green-500 px-3 py-1 rounded-full">Seller Portal</span>
-            </div>
-            <div className="flex items-center space-x-6">
-              <button className="flex items-center space-x-2 hover:text-green-200 transition-colors">
-                <Package className="w-5 h-5" />
-                <span>My Listings</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </nav>
+    <>
+      <Script
+        src="https://widget.cloudinary.com/v2.0/global/all.js"
+        strategy="beforeInteractive"
+      />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Create New Listing Section */}
-        <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-gray-800">Create New Listing</h2>
-            <span className="text-sm text-gray-500">All fields are required</span>
-          </div>
-          
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Left Column */}
-              <div className="space-y-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Listing Title</label>
-                  <input
-                    type="text"
-                    value={formData.title}
-                    onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-transparent transition-shadow"
-                    placeholder="Enter a descriptive title"
-                    required
-                  />
-                </div>
+      <form
+        onSubmit={handleSubmit}
+        className="space-y-4 max-w-lg mx-auto p-6 bg-white shadow-md rounded-lg"
+      >
+        <h1 className="text-2xl font-bold text-green-600">Sell Waste</h1>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
-                  <select 
-                    value={formData.category}
-                    onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-transparent transition-shadow"
-                    required
-                  >
-                    {categories.filter(cat => cat !== 'all').map(category => (
-                      <option key={category} value={category}>
-                        {category.charAt(0).toUpperCase() + category.slice(1)}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Location</label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      value={formData.location}
-                      onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
-                      className="w-full px-4 py-3 pl-10 rounded-xl border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-transparent transition-shadow"
-                      placeholder="Enter your location"
-                      required
-                    />
-                    <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                  </div>
-                </div>
-              </div>
-
-              {/* Right Column */}
-              <div className="space-y-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Price (₹)</label>
-                  <input
-                    type="number"
-                    value={formData.price}
-                    onChange={(e) => setFormData(prev => ({ ...prev, price: e.target.value }))}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-transparent transition-shadow"
-                    placeholder="Enter price per unit"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Quantity</label>
-                  <input
-                    type="text"
-                    value={formData.quantity}
-                    onChange={(e) => setFormData(prev => ({ ...prev, quantity: e.target.value }))}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-transparent transition-shadow"
-                    placeholder="e.g., 500 kg"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Image Upload</label>
-                  <button
-                    type="button"
-                    onClick={openCloudinaryWidget}
-                    className="w-full px-4 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white transition-colors flex items-center justify-center space-x-2"
-                    disabled={!isCloudinaryReady}
-                  >
-                    <Upload className="w-5 h-5" />
-                    <span>{isCloudinaryReady ? 'Upload Image' : 'Loading...'}</span>
-                  </button>
-                  {imageUrl && (
-                    <div className="mt-3">
-                      <img src={imageUrl} alt="Upload preview" className="w-full h-40 object-cover rounded-xl" />
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
-              <textarea
-                value={formData.description}
-                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-transparent transition-shadow"
-                rows={4}
-                placeholder="Provide details about your waste material..."
-                required
-              />
-            </div>
-
-            <button 
-              type="submit"
-              className="w-full py-4 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white rounded-xl font-medium transition-all duration-200 flex items-center justify-center space-x-2 disabled:from-gray-400 disabled:to-gray-500"
-              disabled={isSubmitting || !imageUrl}
-            >
-              {isSubmitting ? 'Creating Listing...' : 'Create Listing'}
-            </button>
-          </form>
+        <div>
+          <label className="block text-gray-700 font-medium">Title</label>
+          <input
+            type="text"
+            name="title"
+            placeholder="Title"
+            value={formData.title}
+            onChange={handleChange}
+            className="w-full mt-1 p-2 border rounded-md"
+          />
         </div>
 
-        {/* Search and Filter Section */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
-          <div className="flex flex-col md:flex-row md:items-center md:space-x-4 space-y-4 md:space-y-0">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <input
-                type="text"
-                placeholder="Search your listings..."
-                className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-            <div className="flex items-center space-x-2">
-              <Filter className="text-gray-400 w-5 h-5" />
-              <select
-                className="px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
-              >
-                {categories.map(category => (
-                  <option key={category} value={category}>
-                    {category.charAt(0).toUpperCase() + category.slice(1)}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
+        <div>
+          <label className="block text-gray-700 font-medium">Description</label>
+          <textarea
+            name="description"
+            placeholder="Description"
+            value={formData.description}
+            onChange={handleChange}
+            className="w-full mt-1 p-2 border rounded-md"
+          />
         </div>
 
-        {/* My Listings Grid */}
-        <div className="space-y-6">
-          <h2 className="text-2xl font-bold text-gray-800">My Listings</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredListings.map(listing => (
-              <div key={listing.id} className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
-                <div className="relative">
-                  <img src={listing.image} alt={listing.name} className="w-full h-48 object-cover" />
-                  <div className="absolute top-3 right-3">
-                    <span className="px-3 py-1 bg-green-500 text-white text-sm rounded-full">
-                      {listing.status}
-                    </span>
-                  </div>
-                </div>
-                <div className="p-6">
-                  <h3 className="text-xl font-bold text-gray-800 mb-3">{listing.name}</h3>
-                  <div className="space-y-2 text-gray-600">
-                    <p className="flex items-center">
-                      <span className="font-medium mr-2">Category:</span> {listing.category}
-                    </p>
-                    <p className="flex items-center">
-                      <span className="font-medium mr-2">Quantity:</span> {listing.quantity}
-                    </p>
-                    <p className="flex items-center">
-                    <span className="font-medium mr-2">Price:</span> ₹{listing.price}/unit
-                    </p>
-                    <p className="flex items-center">
-                      <span className="font-medium mr-2">Location:</span> {listing.location}
-                    </p>
-                    <p className="text-sm mt-3">{listing.description}</p>
-                  </div>
-                  <div className="flex justify-end space-x-3 mt-4">
-                    <button
-                      onClick={() => {
-                        setFormData({
-                          title: listing.name,
-                          category: listing.category,
-                          price: listing.price,
-                          quantity: listing.quantity,
-                          location: listing.location,
-                          description: listing.description
-                        });
-                        setImageUrl(listing.image);
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                      }}
-                      className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                    >
-                      <Edit2 className="w-5 h-5" />
-                    </button>
-                    <button
-                      onClick={() => deleteListing(listing.id)}
-                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                    >
-                      <Trash2 className="w-5 h-5" />
-                    </button>
-                  </div>
-                </div>
+        <div>
+          <label className="block text-gray-700 font-medium">Location</label>
+          <input
+            type="text"
+            name="location"
+            placeholder="Location"
+            value={formData.location}
+            onChange={handleChange}
+            className="w-full mt-1 p-2 border rounded-md"
+          />
+        </div>
+
+        <div>
+          <label className="block text-gray-700 font-medium">Waste Type</label>
+          <select
+            name="wasteType"
+            value={formData.wasteType}
+            onChange={handleChange}
+            className="w-full mt-1 p-2 border rounded-md"
+          >
+            <option value="plastic">Plastic</option>
+            <option value="metal">Metal</option>
+            <option value="paper">Paper</option>
+            <option value="electronic">Electronic</option>
+            <option value="organic">Organic</option>
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-gray-700 font-medium">Quantity</label>
+          <input
+            type="text"
+            name="quantity"
+            placeholder="Quantity"
+            value={formData.quantity}
+            onChange={handleChange}
+            className="w-full mt-1 p-2 border rounded-md"
+          />
+        </div>
+
+        <div>
+          <label className="block text-gray-700 font-medium">Price</label>
+          <input
+            type="number"
+            name="price"
+            placeholder="Price"
+            value={formData.price}
+            onChange={handleChange}
+            className="w-full mt-1 p-2 border rounded-md"
+          />
+        </div>
+
+        <div>
+          <label className="block text-gray-700 font-medium">
+            Upload Waste Image
+          </label>
+          <button
+            type="button"
+            onClick={openCloudinaryWidget}
+            className="w-full mt-1 bg-blue-600 text-white font-medium py-2 rounded-md hover:bg-blue-700"
+          >
+            Upload File
+          </button>
+
+          <div className="mt-4 grid grid-cols-2 gap-4">
+            {uploadedFiles.map((file, index) => (
+              <div key={index} className="relative">
+                <img
+                  src={file}
+                  alt={`Uploaded waste ${index + 1}`}
+                  className="w-full h-48 object-cover rounded-lg"
+                />
+                <button
+                  type="button"
+                  onClick={() => removeImage(index)}
+                  className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600"
+                >
+                  Remove
+                </button>
               </div>
             ))}
           </div>
-          
-          {filteredListings.length === 0 && (
-            <div className="text-center py-12">
-              <p className="text-gray-500 text-lg">No listings found matching your criteria</p>
-            </div>
-          )}
         </div>
-      </div>
-    </div>
+
+        <button
+          type="submit"
+          className="w-full bg-green-600 text-white font-medium py-2 rounded-md hover:bg-green-700"
+        >
+          Create Listing
+        </button>
+
+        {status && (
+          <p
+            className={`mt-2 text-center text-sm ${
+              status.includes("Error") || status.includes("Failed")
+                ? "text-red-600"
+                : "text-green-600"
+            }`}
+          >
+            {status}
+          </p>
+        )}
+      </form>
+    </>
   );
 };
 

@@ -22,7 +22,6 @@ export const WasteListings = pgTable("waste_listings", {
   wasteType: varchar("waste_type", { length: 255 }).notNull(),
   quantity: varchar("quantity", { length: 255 }).notNull(),
   price: integer("price").notNull(),
-  imageUrl: text("image_url"),
   verificationResult: jsonb("verification_result"),
   status: varchar("status", { length: 20 }).notNull().default("available"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -165,6 +164,10 @@ export const Payment = pgTable("payments", {
   date: timestamp("date").defaultNow().notNull(),
 });
 
+
+
+//added for buy and sell
+
 export const MarketplaceOrders = pgTable('marketplace_orders', {
   id: serial('id').primaryKey(),
   buyerId: integer('buyer_id').references(() => Users.id).notNull(),
@@ -184,3 +187,5 @@ export const Cart = pgTable('cart', {
   quantity: varchar('quantity', { length: 255 }).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
+
+
