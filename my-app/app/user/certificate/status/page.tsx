@@ -1,18 +1,22 @@
 "use client";
+import "./x.css"
 import React, { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import axios, { AxiosResponse } from "axios";
 import { toast } from "react-hot-toast";
-
+import { loadStripe } from "@stripe/stripe-js";
+import Image from "next/image";
+import stripe from "@/assets/stripe.png"
+import sslcommerz from "@/assets/sslcommerz.png"
 const CertificateStatus: React.FC = () => {
   const [paymentStatus, setPaymentStatus] = useState(false);
   const [loading, setLoading] = useState(false);
   const [approved, setApproved] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  // Retrieve user data from localStorage
   const userEmail = localStorage.getItem("userEmail");
   const userName = localStorage.getItem("userName");
 
@@ -58,7 +62,39 @@ const CertificateStatus: React.FC = () => {
     }
   }, [searchParams, approved]);
 
-  const handlePayment = async () => {
+  const handleStripe = async () => {
+    if (!approved) {
+      alert("Your certificate has not been approved by the admin yet.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await fetch("/user/api/stripe-intent", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userEmail, userName, amount: 500, type: "certificate" }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to create payment session");
+      }
+
+      const { sessionId } = await response.json();
+
+      const stripe = await loadStripe("pk_test_51PMqS2GhvT5slJMQ88OIGK4hnLOJQ3MtXOgVFd5y75wzA63FMoy5cIre7yNblPkaURi5cm7fm0mSr3TJAwSezxlJ00JA67URdL");
+      if (stripe) {
+        await stripe.redirectToCheckout({ sessionId });
+      }
+    } catch (error) {
+      console.error("Error during payment:", error);
+      toast.error("Payment failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSslCommerz = async () => {
     if (!approved) {
       alert("Your certificate has not been approved by the admin yet.");
       return;
@@ -72,11 +108,10 @@ const CertificateStatus: React.FC = () => {
         return;
       }
 
-      // Make a POST request to the SSLCommerz payment intent endpoint
       const result: AxiosResponse<{ success: boolean; url: string }> = await axios.post(
         "/user/api/sslcommerz-intent/sslcommerz/create-payment",
         {
-          amount: 500, // Example amount
+          amount: 500,
           userEmail,
           userName,
           type: "certificate",
@@ -84,7 +119,6 @@ const CertificateStatus: React.FC = () => {
       );
 
       if (result.data.success && result.data.url) {
-        // Redirect to the SSLCommerz payment URL
         window.location.href = result.data.url;
       } else {
         toast.error("Something went wrong during the payment initiation.");
@@ -98,7 +132,6 @@ const CertificateStatus: React.FC = () => {
   };
 
   const handleGenerateCertificate = () => {
-    // Navigate to the /badge route
     router.push("/user/Badge");
   };
 
@@ -130,7 +163,7 @@ const CertificateStatus: React.FC = () => {
         <div>
           <p>Please complete the payment to generate your certificate.</p>
           <button
-            onClick={handlePayment}
+            onClick={() => setShowPaymentModal(true)}
             className="pay-button"
             disabled={loading}
             style={{
@@ -147,6 +180,29 @@ const CertificateStatus: React.FC = () => {
           </button>
         </div>
       )}
+
+      {/* Payment Modal */}
+      {showPaymentModal && (
+        <div className="payment-modal">
+          <div className="modal-content">
+            <h2>Select Payment Method</h2>
+            <div className="payment-options">
+              <button onClick={handleStripe} className="payment-option">
+                <Image src={stripe} alt="Stripe" width={100} height={50} />
+                <p>Pay with Stripe</p>
+              </button>
+              <button onClick={handleSslCommerz} className="payment-option">
+                <Image src={sslcommerz} alt="SSLCommerz" width={100} height={50} />
+                <p>Pay with SSLCommerz</p>
+              </button>
+            </div>
+            <button onClick={() => setShowPaymentModal(false)} className="close-button">
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };
