@@ -159,7 +159,7 @@ export const Payment = pgTable("payments", {
   id: serial("id").primaryKey(), // Auto-incrementing primary key
   transactionId: varchar("transactionId", { length: 255 }).unique(), // Unique transaction ID
   userEmail: varchar("userEmail").references(() => Users.email).notNull(), // Foreign key referencing Users table
-  type: varchar("type", { length: 20 }).notNull(), // 'residential service', 'certificate', or 'buy&sell'
+  type: varchar("type", { length: 20 }).notNull(), // 'residential service', 'certificate', or 'buySell'
   amount: integer("amount").notNull(),
   userName: text("userName").notNull(),
   date: timestamp("date").defaultNow().notNull(),

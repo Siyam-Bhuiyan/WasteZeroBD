@@ -47,7 +47,7 @@ const CheckoutForm = () => {
           amount: 500,
           userEmail: userEmail,
           userName: "bhuiyan",
-          type: "certificate",
+          type: "buySell",
         }
       );
 

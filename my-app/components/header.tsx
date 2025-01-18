@@ -234,7 +234,7 @@ export default function Header({ onMenuClick, totalEarnings }: HeaderProps) {
                 amount,
                 userEmail,
                 userName,
-                type,
+                type:'residential',
             });
 
             if (result.data.success && result.data.url) {

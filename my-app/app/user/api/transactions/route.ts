@@ -5,13 +5,18 @@ import { eq, desc } from "drizzle-orm";
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
-  const type = searchParams.get("type") || "certificate"; // Default to "certificates"
+  let type = searchParams.get("type"); // Default to "certificates"
+
+  // Ensure `type` is a string; provide a fallback if necessary
+  if (!type) {
+    type = "certificates"; // Replace with your desired default value
+  }
 
   try {
     const transactions = await db
       .select()
       .from(Payment)
-      .where(eq(Payment.type, type)) // Use `eq` to filter by type
+      .where(eq(Payment.type, type)) // Pass the ensured `string` type here
       .orderBy(desc(Payment.date)); // Sort by most recent first
 
     console.log("Fetched Transactions:", transactions); // Debug log
